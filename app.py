@@ -9,6 +9,19 @@ client = Client('http://meilisearch:7700')
 index = client.index('exams')
 
 
+@app.after_request
+def add_headers(response):
+    """
+    Decorator function to add headers to the response.
+    Allows cross-origin resource sharing (CORS) by setting the 'Access-Control-Allow-Origin',
+    'Access-Control-Allow-Methods', and 'Access-Control-Allow-Headers' headers.
+    """
+    response.headers['Access-Control-Allow-Origin'] = '*'  # Allow requests from any origin
+    response.headers['Access-Control-Allow-Methods'] = 'POST, OPTIONS'  # Allow POST and OPTIONS methods
+    response.headers['Access-Control-Allow-Headers'] = 'Content-Type'  # Allow 'Content-Type' header
+    return response
+
+
 @app.route('/', methods=['GET'])
 def main():
     return '''
