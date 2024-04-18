@@ -216,7 +216,7 @@ def search_api():
     if 'limit' not in data.keys():
         data['limit'] = 100000
 
-    return requests.post('http://meilisearch:7700/indexes/exams/search', headers={'Content-Type': 'application/json'}, data=json.dumps({"q": data['query'], "limit": data["limit"]}).json()
+    return requests.post('http://meilisearch:7700/indexes/exams/search', headers={'Content-Type': 'application/json'}, data=json.dumps({"q": data['query'], "limit": data["limit"]})).json()
 
 
 if __name__ == '__main__':
