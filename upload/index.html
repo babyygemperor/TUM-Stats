@@ -101,7 +101,7 @@
                     success: function(data) {
                         $('#loading-animation').hide(); // Hide the loading animation
                         // Render the HTML in the pre tag with id 'html-output'
-                        $('#html-output').text(data).show();
+                        $('#html-output').text(JSON.stringify(data)).show();
                     },
                     error: function() {
                         $('#loading-animation').hide(); // Hide the loading animation
