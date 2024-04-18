@@ -1,6 +1,7 @@
 from flask import Flask, request
 from meilisearch import Client
 from html import escape
+import request
 
 app = Flask(__name__)
 
@@ -199,6 +200,21 @@ def search():
         html.append(json_to_html(search_result))
 
     return html
+
+
+@app.route('/search', methods=['POST'])
+def search():
+    data = request.json
+
+    search_results = index.search(data['query'], {
+        'attributesToRetrieve': ['Date', 'Module Number', 'Name', 'Registered',
+                                  'Attempt made', 'Not present', 'Withdrawal with approved reasons',
+                                  'Not valid/cheating', 'Rejection', 'Percent. of exams assessed as failed',
+                                  'Average total', 'Average (assessed as passed)', 'Grade distribution'],
+    })
+
+
+    return requests.post('http://meilisearch:7700', headers={'Content-Type': 'application/json'}, data={"q": data['query'], "limit": data["limit"]})
 
 
 if __name__ == '__main__':
