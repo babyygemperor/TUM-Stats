@@ -3,7 +3,7 @@ services:
   flask-app:
     build: .
     ports:
-      - "6958:6658"
+      - "6655:6655"
     restart: unless-stopped
   meilisearch:
     image: getmeili/meilisearch
