@@ -158,8 +158,12 @@ def json_to_html(json_data):
         distribution = dict(sorted(distribution.items()))
 
         for grade, count in distribution.items():
-            percentage = (int(count) / total_candidates) * 100
-            bar_height = f"{int(count) / int(max(distribution.values(), key=int)) * 20}em"
+            try:
+                percentage = (int(count) / total_candidates) * 100
+                bar_height = f"{int(count) / int(max(distribution.values(), key=int)) * 20}em"
+            except ZeroDivisionError:
+                percentage = 0
+                bar_height = 0
             colour = grade_colours.get(grade, "rgb(100,100,100)")
             if first:
                 html_content += '<div style="width: 5%; margin: 0 0 0 1%; position: relative;">'
