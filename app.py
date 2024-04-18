@@ -1,7 +1,7 @@
 from flask import Flask, request
 from meilisearch import Client
 from html import escape
-import request
+import requests
 
 app = Flask(__name__)
 
