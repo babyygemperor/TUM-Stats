@@ -52,7 +52,7 @@
         function searchExams() {
             const input = document.getElementById('searchBox');
 
-            fetch(`/search?query=${encodeURIComponent(input.value)}`)
+            fetch(`https://statsservice.aamin.dev/search?query=${encodeURIComponent(input.value)}`)
                 .then(response => response.json())
                 .then(data => {
                     document.getElementById("html-output").innerHTML = '';
