@@ -93,6 +93,10 @@ def main():
                         });
                     })
                     .catch(error => console.error('Error:', error));
+
+                document.addEventListener('DOMContentLoaded', function() {
+                    searchExams();
+                });
             }
         </script>
     </body>
