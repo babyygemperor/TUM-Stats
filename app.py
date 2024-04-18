@@ -76,6 +76,7 @@ def main():
                 border-radius: 10px;
                 box-shadow: 0 2px 4px rgba(0,0,0,0.2);
                 display: inline-block;
+                z-index: 200
             }
         </style>
     </head>
@@ -85,7 +86,7 @@ def main():
             <button id="contributeButton" onclick="location.href='/upload'">Contribute your stats</button>
         </div>
         <div id="html-output"></div>
-        <div style="position: fixed; bottom: 1em; left: 1em;">
+        <div style="position: fixed; bottom: 1em; right: 1em;">
             <a href="https://stats.aamin.dev/old" class="old-link">Visit Old Website</a>
         </div>
         <script>
