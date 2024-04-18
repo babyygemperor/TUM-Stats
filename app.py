@@ -213,8 +213,10 @@ def search_api():
                                   'Average total', 'Average (assessed as passed)', 'Grade distribution'],
     })
 
+    if 'limit' not in data.keys():
+        data['limit'] = 100000
 
-    return requests.post('http://meilisearch:7700', headers={'Content-Type': 'application/json'}, data={"q": data['query'], "limit": data["limit"]})
+    return requests.post('http://meilisearch:7700', headers={'Content-Type': 'application/json'}, data={"q": data['query'], "limit": data["limit"]}).text
 
 
 if __name__ == '__main__':
