@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Statistics</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <style>
+        body {
+            background: #202124; /* Google dark theme background */
+            color: #fff; /* White text */
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            width: 70%;
+            margin: 50px auto;
+            text-align: center;
+        }
+        .upload-area {
+            border: 2px dashed #fff;
+            padding: 30px;
+            margin-top: 20px;
+            position: relative;
+        }
+        .upload-area:hover {
+            background: #444; /* Slightly lighter on hover */
+        }
+        .upload-input {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+        .upload-or {
+            margin: 20px 0;
+            color: #aaa;
+        }
+        .search-bar {
+            padding: 10px;
+            width: calc(100% - 22px);
+            background: #555;
+            border: none;
+            color: white;
+            margin-bottom: 10px;
+        }
+        .upload-button {
+            padding: 10px 20px;
+            background: #4285f4; /* Google blue */
+            border: none;
+            color: white;
+            cursor: pointer;
+            width: 100%;
+        }
+        .upload-button:hover {
+            background: #3079ed;
+        }
+        .upload-instructions {
+            font-size: 14px;
+        }
+        #image-preview {
+            max-width: 100%; /* Ensure the image is responsive */
+            margin-top: 20px; /* Space above the image */
+        }
+        #html-output {
+            text-align: left;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            background: #333;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        #loading-animation {
+            display: none;
+            color: #4285f4;
+        }
+    </style>
+    <script>
+        $(document).ready(function(){
+            var base64ImageData = ''; // Variable to store the image data
+
+            // Function to handle the display of image
+            function displayImage(imageData) {
+                $('#image-preview').attr('src', imageData).show();
+            }
+
+            // Function to handle the upload and display of image
+            function uploadImage() {
+                $('#html-output').hide(); // Hide the HTML output
+                $('#loading-animation').show(); // Show the loading animation
+
+                // Send the image data to the server
+                $.ajax({
+                    method: 'POST',
+                    url: 'https://statsanalysis.aamin.dev/upload',
+                    data: {
+                        image: base64ImageData
+                    },
+                    success: function(data) {
+                        $('#loading-animation').hide(); // Hide the loading animation
+                        // Render the HTML in the pre tag with id 'html-output'
+                        $('#html-output').html(data).show();
+                    },
+                    error: function() {
+                        $('#loading-animation').hide(); // Hide the loading animation
+                        $('#html-output').text("An error occurred. Try again!").show();
+                    }
+                });
+            }
+
+            // Listen for paste events on the search bar
+            $('.search-bar').on('paste', function(event) {
+                var items = (event.originalEvent || event).clipboardData.items;
+                for (var index in items) {
+                    var item = items[index];
+                    if (item.kind === 'file') {
+                        var blob = item.getAsFile();
+                        var reader = new FileReader();
+                        reader.onload = function(event) {
+                            base64ImageData = event.target.result; // Save the Base64 encoded image
+                            displayImage(event.target.result); // Display the image
+                        };
+                        reader.readAsDataURL(blob);
+                    }
+                }
+            });
+
+            // Handle file upload via input
+            $('#file-input').on('change', function(event) {
+                var file = event.target.files[0];
+                var reader = new FileReader();
+                reader.onload = function(event) {
+                    base64ImageData = event.target.result; // Save the Base64 encoded image
+                    displayImage(event.target.result); // Display the image
+                };
+                reader.readAsDataURL(file);
+            });
+
+            // Handle the "Search" button click
+            $('#upload-button').click(function() {
+                if (base64ImageData) {
+                    uploadImage(); // Call the function to upload the image
+                } else {
+                    alert("Please upload or paste an image first.");
+                }
+            });
+        });
+    </script>
+</head>
+<body>
+<div class="container">
+    <h1 style="color: #fff;">Upload Statistics</h1>
+    <div class="upload-area">
+        <div class="upload-instructions">Drag an image here or <label for="file-input" style="color: #4285f4; cursor: pointer;">upload a file</label></div>
+        <input type="file" id="file-input" class="upload-input">
+    </div>
+    <div class="upload-or">OR</div>
+    <input type="text" class="search-bar" placeholder="Paste image link">
+    <!-- Upload button -->
+    <button class="upload-button" id="upload-button">Generate Statistics</button>
+
+    <!-- Loading Animation -->
+    <div id="loading-animation"><br><br><br>Generating statistics...</div>
+
+    <br>
+    <br>
+    <br>
+
+    <div id="Note"><b>Note: Upload the screenshot with the statistics in horizontal orientation or in an orientation such that none of the text has any rotation</b></div>
+
+
+    <!-- Image Preview -->
+    <img id="image-preview" style="display:none;"/>
+
+    <!-- HTML Output -->
+    <pre id="html-output" style="display:none;"></pre>
+</div>
+</body>
+</html>

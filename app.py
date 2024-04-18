@@ -71,7 +71,7 @@ def main():
     <body>
         <div class="search-container">
             <input type="text" id="searchBox" onkeyup="searchExams()" placeholder="Enter exam code or name">
-            <button id="contributeButton" onclick="location.href='YOUR_CONTRIBUTION_PAGE_URL'">Contribute your stats</button>
+            <button id="contributeButton" onclick="location.href='/upload'">Contribute your stats</button>
         </div>
         <div id="html-output"></div>
 
