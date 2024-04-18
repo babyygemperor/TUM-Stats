@@ -1,0 +1,10 @@
+version: '3.8'
+services:
+  flask-app:
+    build: .
+    ports:
+      - "6658:6658"
+    restart: unless-stopped
+  meilisearch:
+    image: getmeili/meilisearch
+    restart: unless-stopped
