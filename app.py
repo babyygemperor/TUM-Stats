@@ -71,13 +71,14 @@ def main():
         </style>
     </head>
     <body>
-        <a href url="https://stats.aamin.dev/old">Visit Old Website</a>
         <div class="search-container">
             <input type="text" id="searchBox" onkeyup="searchExams()" placeholder="Enter exam code or name">
             <button id="contributeButton" onclick="location.href='/upload'">Contribute your stats</button>
         </div>
         <div id="html-output"></div>
-
+        <div style="position: absolute; bottom: 1em;">
+            <a href url="https://stats.aamin.dev/old" style="">Visit Old Website</a>
+        </div>
         <script>
             function searchExams() {
                 const input = document.getElementById('searchBox');
