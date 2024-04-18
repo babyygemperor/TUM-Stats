@@ -203,7 +203,7 @@ def search():
 
 
 @app.route('/search', methods=['POST'])
-def search():
+def search_api():
     data = request.json
 
     search_results = index.search(data['query'], {
