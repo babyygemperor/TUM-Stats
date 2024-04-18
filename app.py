@@ -77,13 +77,23 @@ def main():
                 box-shadow: 0 2px 4px rgba(0,0,0,0.2);
                 display: inline-block;
             }
+            .note {
+                padding: 10px;
+                background-color: #fff8e1;
+                border-left: 4px solid #ffc107;
+                margin-top: 10px;
+                border-radius: 5px;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                font-size: 14px;
+            }
         </style>
     </head>
     <body>
         <div class="search-container">
-            <input type="text" id="searchBox" onkeyup="searchExams()" placeholder="Enter exam code or name">
+            <input type="text" id="searchBox" onkeyup="searchExams()" placeholder="Enter module number or name (e.g. IN0011)">
             <button id="contributeButton" onclick="location.href='/upload'">Contribute your stats</button>
         </div>
+        <div class="note" id="tip">Tip: Use module numbers for consistent search results, as module names can vary.</div>
         <div id="html-output"></div>
         <div id="standard"></div>
         <div style="position: fixed; bottom: 1em; left: 1em;">
@@ -109,6 +119,10 @@ def main():
 
                 standardDiv.style.display = input.value.trim() === '' ? 'block' : 'none';
             }
+
+            setTimeout(function() {
+                document.getElementById('tip').style.display = 'none';
+            }, 10000);
         </script>
     </body>
     </html>
