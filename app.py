@@ -44,8 +44,8 @@ def main():
                 margin-bottom: 20px;
             }
             #searchBox {
-                flex-grow: 1; /* Takes up remaining space */
-                margin-right: 10px; /* Space between the search bar and button */
+                flex-grow: 1;
+                margin-right: 10px;
                 padding: 10px;
                 font-size: 16px;
                 border: 2px solid #ccc;
@@ -61,7 +61,7 @@ def main():
                 cursor: pointer;
                 box-shadow: 0 2px 4px rgba(0,0,0,0.2);
             }
-            .stats {
+            .stats, #standard {
                 margin-top: 20px;
                 background: white;
                 padding: 20px;
@@ -76,7 +76,6 @@ def main():
                 border-radius: 10px;
                 box-shadow: 0 2px 4px rgba(0,0,0,0.2);
                 display: inline-block;
-                z-index: 200
             }
         </style>
     </head>
@@ -86,12 +85,15 @@ def main():
             <button id="contributeButton" onclick="location.href='/upload'">Contribute your stats</button>
         </div>
         <div id="html-output"></div>
-        <div style="position: fixed; bottom: 1em; right: 1em;">
+        <div id="standard"></div>
+        <div style="position: fixed; bottom: 1em; left: 1em;">
             <a href="https://stats.aamin.dev/old" class="old-link">Visit Old Website</a>
         </div>
         <script>
             function searchExams() {
                 const input = document.getElementById('searchBox');
+                const standardDiv = document.getElementById('standard');
+
                 fetch(`/search?query=${encodeURIComponent(input.value)}`)
                     .then(response => response.json())
                     .then(data => {
@@ -104,6 +106,8 @@ def main():
                         });
                     })
                     .catch(error => console.error('Error:', error));
+
+                standardDiv.style.display = input.value.trim() === '' ? 'block' : 'none';
             }
         </script>
     </body>
