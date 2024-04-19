@@ -99,7 +99,7 @@ def main():
         <div class="note" id="tip">Tip: Use module numbers for consistent search results, as module names can vary.</div>
         <div id="html-output"></div>
         <div id="standard"></div>
-        <div style="position: fixed; bottom: 1em; left: 1em;">
+        <div style="position: fixed; bottom: 1em; right: 1em;">
             <a href="https://stats.aamin.dev/old" class="old-link">Visit Old Website</a>
         </div>
         <script>
