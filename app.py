@@ -165,7 +165,6 @@ def json_to_html(json_data, query):
                 html_content += "</tbody>\n</table>\n"
         html_content += distribution_html
         return html_content
-    return render_html(json_data, 0)
 
     def render_distribution(distribution):
         required_grades = ["1.0", "1.3", "1.7", "2.0", "2.3", "2.7", "3.0", "3.3", "3.7", "4.0", "4.3", "4.7", "5.0"]
