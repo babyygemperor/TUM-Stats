@@ -205,7 +205,7 @@ def json_to_html(json_data):
                 html_content += f'<div style="color: black; text-align: center; position: absolute; bottom: 100%; width: 100%; margin-bottom: 1.0em">{percentage:.2f}%<br>{count} K.</div></div>'
             else:
                 html_content += f'<div style="color: black; text-align: center; position: absolute; bottom: 100%; width: 100%; margin-bottom: 2.0em"><br>{count} K.</div></div>'
-            html_content += f'<div style="text-align: center; margin-top: 25px;">{escape(str(grade))}</div>'
+            html_content += f'<div style="position: absolute; text-align: center; margin-top: -1em;">{escape(str(grade))}</div>'
             html_content += '</div>'
         html_content += '</div>'
         return html_content
