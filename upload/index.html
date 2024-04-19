@@ -64,7 +64,7 @@
             max-width: 50%; /* Ensure the image is responsive */
             margin-top: 20px; /* Space above the image */
         }
-        #html-output, .missing-fields {
+        #html-output, #json-output .missing-fields, #send-data-box {
             text-align: left;
             white-space: pre-wrap;
             word-wrap: break-word;
@@ -76,7 +76,7 @@
             display: none;
             color: #4285f4;
         }
-        .field-input {
+        .field-input, .email-input {
             padding: 10px;
             width: calc(100% - 22px);
             background: #555;
@@ -96,6 +96,7 @@
 
             function uploadImage() {
                 $('#html-output').hide();
+                $('#json-output').hide();
                 $('#loading-animation').show();
                 $('#missing-fields').empty().hide(); // Reset missing fields
 
@@ -108,7 +109,9 @@
                     success: function(data) {
                         $('#loading-animation').hide();
                         checkMissingFields(data);
-                        $('#html-output').text(JSON.stringify(data, null, 4)).show();
+                        $('#json-output').text(JSON.stringify(data['json'], null, 4));
+                        $('#html-output').html(data['html']).show();
+
                         window.scrollTo(0, document.body.scrollHeight);
                     },
                     error: function() {
@@ -125,11 +128,15 @@
                     if (!data[field]) {
                         missing = true;
                         $('#missing-fields').append(
-                            $('<div/>').append($('<label/>', {text: field, class: 'field-label'}))
-                                .append($('<input/>', {type: 'text', class: 'field-input', id: 'input-' + field, required: true}))
+                            $('<div/>').append($('<label/>', {text: field + ' *', class: 'field-label'}))
+                                .append($('<input required/>', {type: 'text', class: 'field-input', id: 'input-' + field}))
                         );
                     }
                 });
+                $('#missing-fields').append(
+                    $('<div/>').append($('<label/>', {text: 'Email ID', class: 'field-label'}))
+                        .append($('<input/>', {type: 'email', class: 'email-input', id: 'input-email'}))
+                );
                 if (missing) {
                     $('#missing-fields').show();
                     $('#send-button').show();
@@ -137,7 +144,7 @@
             }
 
             $('#send-button').click(function() {
-                var allData = $('#html-output').text();
+                var allData = $('#json-output').text();
                 try {
                     allData = JSON.parse(allData);
                 } catch (e) {
@@ -151,6 +158,8 @@
                         allData[field] = inputValue;
                     }
                 });
+
+                allData['Email'] = $('#input-email').val();
 
                 $.ajax({
                     method: 'POST',
@@ -223,7 +232,9 @@
     <div id="Note"><b>Note: Upload the screenshot with the statistics in horizontal orientation or in an orientation such that none of the text has any rotation</b></div>
     <img id="image-preview" style="display:none;"/>
     <pre id="html-output" style="display:none;"></pre>
+    <pre id="json-output" style="display:none;"></pre>
     <div id="missing-fields" class="missing-fields" style="display:none;"></div>
+    <div id="send-data-box" style="display:none;"></div>
     <button class="send-button" id="send-button" style="display:none;">Send Data</button>
 </div>
 </body>
