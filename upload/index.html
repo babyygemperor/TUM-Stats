@@ -122,8 +122,11 @@
                 requiredFields.forEach(function(field) {
                     if (!data[field]) {
                         missing = true;
-                        if (field == "Name") {
+                        if (field === "Name") {
                             field = "Name of the module"
+                        }
+                        if (field === "Date") {
+                            field = "Date of the exam"
                         }
                         $('#missing-fields').append(
                             $('<div/>').append($('<label/>', {text: field + ' *', class: 'field-label'}))
@@ -143,7 +146,7 @@
                 }
             }
 
-            function send_data() {
+            send_data = function () {
                 var allData = JSON.parse($('#json-output').text());
                 ['Date', 'Name'].forEach(function(field) {
                     var inputValue = $('#input-' + field).val();
@@ -233,7 +236,7 @@
     <img id="image-preview" style="display:none;"/>
     <pre id="html-output" style="display:none;"></pre>
     <pre id="json-output" style="display:none;"></pre>
-    <form onsubmit="return send_data()">
+    <form onsubmit="send_data(); return false;">
         <div id="missing-fields" class="missing-fields" style="display:none;"></div>
         <div id="send-data-box" style="display:none;"></div>
         <input type="submit" class="send-button" id="send-button" style="display:none;"/>
