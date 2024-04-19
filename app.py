@@ -120,6 +120,10 @@ def main():
                 standardDiv.style.display = input.value.trim() === '' ? 'block' : 'none';
             }
 
+            document.addEventListener('DOMContentLoaded', function() {
+                searchExams();
+            });
+
             setTimeout(function() {
                 document.getElementById('tip').style.display = 'none';
             }, 10000);
