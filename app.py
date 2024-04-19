@@ -152,7 +152,8 @@ def json_to_html(json_data, query):
                 html_content += "<table>\n<tbody>\n"
             for key, value in data.items():
                 if isinstance(value, dict) and key == "Grade distribution":
-                    continue
+                    html_content += f"<tr><td colspan='2'>{escape(str(key))}: Percent % / grade\nK. = Number of candidates</td></tr>\n"
+                    distribution_html = render_distribution(value)
                 elif isinstance(value, dict):
                     continue
                 else:
