@@ -86,6 +86,9 @@ def main():
                 box-shadow: 0 2px 4px rgba(0,0,0,0.1);
                 font-size: 14px;
             }
+            .highlight {
+                background-color: yellow;
+            }
         </style>
     </head>
     <body>
@@ -129,29 +132,39 @@ def main():
     '''
 
 
-def json_to_html(json_data):
+def highlight(text, query):
+    text = escape(text)
+    query_words = query.split()
+    for word in query_words:
+        if word:
+            text = text.replace(word, f'<span class="highlight">{word}</span>')
+    return text
+
+
+def json_to_html(json_data, query):
     def render_html(data, depth=0):
         html_content = ""
         distribution_html = ""
         if isinstance(data, dict):
             if depth == 0:
-                title = f"{data.get('Name', '')}"
-                html_content += f"<h3>{escape(title)}</h3>\n"
+                title = highlight(data.get('Name', ''), query)
+                html_content += f"<h3>{title}</h3>\n"
                 html_content += "<table>\n<tbody>\n"
             for key, value in data.items():
                 if isinstance(value, dict) and key == "Grade distribution":
-                    html_content += f"<tr><td colspan='2'>{escape(str(key))}: Percent % / grade\nK. = Number of candidates</td></tr>\n"
-                    distribution_html = render_distribution(value)
+                    continue
                 elif isinstance(value, dict):
                     continue
                 else:
                     label_id = f"ST{abs(hash(key)) % 1000000000000}"
+                    value = highlight(str(value), query)
                     html_content += f"<tr><td><label for='{label_id}'>{escape(str(key))}:</label></td>"
-                    html_content += f"<td id='{label_id}'>{escape(str(value))}</td></tr>\n"
+                    html_content += f"<td id='{label_id}'>{value}</td></tr>\n"
             if depth == 0:
                 html_content += "</tbody>\n</table>\n"
         html_content += distribution_html
         return html_content
+    return render_html(json_data, 0)
 
     def render_distribution(distribution):
         required_grades = ["1.0", "1.3", "1.7", "2.0", "2.3", "2.7", "3.0", "3.3", "3.7", "4.0", "4.3", "4.7", "5.0"]
@@ -238,7 +251,7 @@ def search():
     for search_result in search_results['hits']:
         grades = search_result.pop('Grade distribution')
         search_result['Grade distribution'] = grades
-        html.append(json_to_html(search_result))
+        html.append(json_to_html(search_result, query))
 
     return html
 
