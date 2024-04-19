@@ -7,8 +7,8 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <style>
         body {
-            background: #202124; /* Google dark theme background */
-            color: #fff; /* White text */
+            background: #202124;
+            color: #fff;
             font-family: Arial, sans-serif;
         }
         .container {
@@ -23,7 +23,7 @@
             position: relative;
         }
         .upload-area:hover {
-            background: #444; /* Slightly lighter on hover */
+            background: #444;
         }
         .upload-input {
             position: absolute;
@@ -48,7 +48,7 @@
         }
         .upload-button, .send-button {
             padding: 10px 20px;
-            background: #4285f4; /* Google blue */
+            background: #4285f4;
             border: none;
             color: white;
             cursor: pointer;
@@ -57,14 +57,11 @@
         .upload-button:hover, .send-button:hover {
             background: #3079ed;
         }
-        .upload-instructions, .field-label {
-            font-size: 14px;
-        }
         #image-preview {
-            max-width: 50%; /* Ensure the image is responsive */
-            margin-top: 20px; /* Space above the image */
+            max-width: 50%;
+            margin-top: 20px;
         }
-        #html-output, #json-output .missing-fields, #send-data-box {
+        #html-output, #json-output, .missing-fields, #send-data-box {
             text-align: left;
             white-space: pre-wrap;
             word-wrap: break-word;
@@ -87,8 +84,7 @@
     </style>
     <script>
         $(document).ready(function(){
-            var base64ImageData = ''; // Variable to store the image data
-            var missingFields = {}; // Store missing fields data
+            var base64ImageData = '';
 
             function displayImage(imageData) {
                 $('#image-preview').attr('src', imageData).show();
@@ -108,11 +104,10 @@
                     },
                     success: function(data) {
                         $('#loading-animation').hide();
-                        checkMissingFields(data);
-                        $('#json-output').text(JSON.stringify(data['json'], null, 4));
-                        $('#html-output').html(data['html']).show();
-
+                        $('#json-output').text(JSON.stringify(data.json, null, 4));
+                        $('#html-output').html(data.html).show();
                         window.scrollTo(0, document.body.scrollHeight);
+                        checkMissingFields(data.json); // Check and display missing fields
                     },
                     error: function() {
                         $('#loading-animation').hide();
@@ -127,32 +122,30 @@
                 requiredFields.forEach(function(field) {
                     if (!data[field]) {
                         missing = true;
+                        if (field == "Name") {
+                            field = "Name of the module"
+                        }
                         $('#missing-fields').append(
                             $('<div/>').append($('<label/>', {text: field + ' *', class: 'field-label'}))
-                                .append($('<input required/>', {type: 'text', class: 'field-input', id: 'input-' + field}))
+                                .append($('<input/>', {type: 'text', class: 'field-input', id: 'input-' + field, required: true}))
                         );
                     }
                 });
+
                 $('#missing-fields').append(
-                    $('<div/>').append($('<label/>', {text: 'Email ID', class: 'field-label'}))
+                    $('<div/>').append($('<label/>', {text: 'Email ID (for reference)', class: 'field-label'}))
                         .append($('<input/>', {type: 'email', class: 'email-input', id: 'input-email'}))
                 );
-                if (missing) {
+
+                if (missing || !data.Email) {
                     $('#missing-fields').show();
                     $('#send-button').show();
                 }
             }
 
-            $('#send-button').click(function() {
-                var allData = $('#json-output').text();
-                try {
-                    allData = JSON.parse(allData);
-                } catch (e) {
-                    alert("Invalid JSON data.");
-                    return;
-                }
-
-                ['Date', 'Module Number', 'Name'].forEach(function(field) {
+            function send_data() {
+                var allData = JSON.parse($('#json-output').text());
+                ['Date', 'Name'].forEach(function(field) {
                     var inputValue = $('#input-' + field).val();
                     if (inputValue) {
                         allData[field] = inputValue;
@@ -176,39 +169,46 @@
                         alert('Failed to send data.');
                     }
                 });
-            });
+            }
 
-            $('.search-bar').on('paste', function(event) {
-                var items = (event.originalEvent || event).clipboardData.items;
-                for (var index in items) {
-                    var item = items[index];
-                    if (item.kind === 'file') {
-                        var blob = item.getAsFile();
-                        var reader = new FileReader();
-                        reader.onload = function(event) {
-                            base64ImageData = event.target.result;
-                            displayImage(event.target.result);
-                        };
-                        reader.readAsDataURL(blob);
+            $('.upload-input, .search-bar').on('change paste', function(event) {
+                var file = event.target.files ? event.target.files[0] : null;
+                if (file) {
+                    var reader = new FileReader();
+                    reader.onload = function(event) {
+                        base64ImageData = event.target.result;
+                        displayImage(event.target.result);
+                    };
+                    reader.readAsDataURL(file);
+                } else if (event.originalEvent.clipboardData) {
+                    var items = event.originalEvent.clipboardData.items;
+                    for (var index in items) {
+                        var item = items[index];
+                        if (item.kind === 'file') {
+                            var blob = item.getAsFile();
+                            var reader = new FileReader();
+                            reader.onload = function(event) {
+                                base64ImageData = event.target.result;
+                                displayImage(event.target.result);
+                            };
+                            reader.readAsDataURL(blob);
+                        }
                     }
                 }
             });
 
-            $('#file-input').on('change', function(event) {
-                var file = event.target.files[0];
-                var reader = new FileReader();
-                reader.onload = function(event) {
-                    base64ImageData = event.target.result;
-                    displayImage(event.target.result);
-                };
-                reader.readAsDataURL(file);
-            });
-
-            $('#upload-button').click(function() {
+            $('.upload-button').click(function() {
                 if (base64ImageData) {
                     uploadImage();
                 } else {
                     alert("Please upload or paste an image first.");
+                }
+            });
+
+            $(document).on('keypress', function(e) {
+                if (e.which === 13) {
+                    uploadImage();
+                    e.preventDefault();
                 }
             });
         });
@@ -233,9 +233,11 @@
     <img id="image-preview" style="display:none;"/>
     <pre id="html-output" style="display:none;"></pre>
     <pre id="json-output" style="display:none;"></pre>
-    <div id="missing-fields" class="missing-fields" style="display:none;"></div>
-    <div id="send-data-box" style="display:none;"></div>
-    <button class="send-button" id="send-button" style="display:none;">Send Data</button>
+    <form onsubmit="return send_data()">
+        <div id="missing-fields" class="missing-fields" style="display:none;"></div>
+        <div id="send-data-box" style="display:none;"></div>
+        <input type="submit" class="send-button" id="send-button" style="display:none;"/>
+    </form>
 </div>
 </body>
 </html>
