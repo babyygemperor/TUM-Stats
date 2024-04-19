@@ -46,7 +46,7 @@
             color: white;
             margin-bottom: 10px;
         }
-        .upload-button {
+        .upload-button, .send-button {
             padding: 10px 20px;
             background: #4285f4; /* Google blue */
             border: none;
@@ -54,17 +54,17 @@
             cursor: pointer;
             width: 100%;
         }
-        .upload-button:hover {
+        .upload-button:hover, .send-button:hover {
             background: #3079ed;
         }
-        .upload-instructions {
+        .upload-instructions, .field-label {
             font-size: 14px;
         }
         #image-preview {
             max-width: 100%; /* Ensure the image is responsive */
             margin-top: 20px; /* Space above the image */
         }
-        #html-output {
+        #html-output, .missing-fields {
             text-align: left;
             white-space: pre-wrap;
             word-wrap: break-word;
@@ -76,22 +76,29 @@
             display: none;
             color: #4285f4;
         }
+        .field-input {
+            padding: 10px;
+            width: calc(100% - 22px);
+            background: #555;
+            border: none;
+            color: white;
+            margin: 5px 0;
+        }
     </style>
     <script>
         $(document).ready(function(){
             var base64ImageData = ''; // Variable to store the image data
+            var missingFields = {}; // Store missing fields data
 
-            // Function to handle the display of image
             function displayImage(imageData) {
                 $('#image-preview').attr('src', imageData).show();
             }
 
-            // Function to handle the upload and display of image
             function uploadImage() {
-                $('#html-output').hide(); // Hide the HTML output
-                $('#loading-animation').show(); // Show the loading animation
+                $('#html-output').hide();
+                $('#loading-animation').show();
+                $('#missing-fields').empty().hide(); // Reset missing fields
 
-                // Send the image data to the server
                 $.ajax({
                     method: 'POST',
                     url: 'https://statsanalysis.aamin.dev/upload',
@@ -99,19 +106,68 @@
                         image: base64ImageData
                     },
                     success: function(data) {
-                        $('#loading-animation').hide(); // Hide the loading animation
-                        // Render the HTML in the pre tag with id 'html-output'
+                        $('#loading-animation').hide();
+                        checkMissingFields(data);
                         $('#html-output').text(JSON.stringify(data, null, 4)).show();
                         window.scrollTo(0, document.body.scrollHeight);
                     },
                     error: function() {
-                        $('#loading-animation').hide(); // Hide the loading animation
+                        $('#loading-animation').hide();
                         $('#html-output').text("An error occurred. Try again!").show();
                     }
                 });
             }
 
-            // Listen for paste events on the search bar
+            function checkMissingFields(data) {
+                var requiredFields = ["Date", "Name"];
+                var missing = false;
+                requiredFields.forEach(function(field) {
+                    if (!data[field]) {
+                        missing = true;
+                        $('#missing-fields').append(
+                            $('<div/>').append($('<label/>', {text: field, class: 'field-label'}))
+                                .append($('<input/>', {type: 'text', class: 'field-input', id: 'input-' + field}))
+                        );
+                    }
+                });
+                if (missing) {
+                    $('#missing-fields').show();
+                }
+            }
+
+            $('#send-button').click(function() {
+                var allData = $('#html-output').text();
+                try {
+                    allData = JSON.parse(allData);
+                } catch (e) {
+                    alert("Invalid JSON data.");
+                    return;
+                }
+
+                ['Date', 'Module Number', 'Name'].forEach(function(field) {
+                    var inputValue = $('#input-' + field).val();
+                    if (inputValue) {
+                        allData[field] = inputValue;
+                    }
+                });
+
+                $.ajax({
+                    method: 'POST',
+                    url: 'https://statsanalysis.aamin.dev/send', // Replace with your actual sending endpoint
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        image: base64ImageData,
+                        data: allData
+                    }),
+                    success: function() {
+                        alert('Data sent successfully!');
+                    },
+                    error: function() {
+                        alert('Failed to send data.');
+                    }
+                });
+            });
+
             $('.search-bar').on('paste', function(event) {
                 var items = (event.originalEvent || event).clipboardData.items;
                 for (var index in items) {
@@ -120,29 +176,27 @@
                         var blob = item.getAsFile();
                         var reader = new FileReader();
                         reader.onload = function(event) {
-                            base64ImageData = event.target.result; // Save the Base64 encoded image
-                            displayImage(event.target.result); // Display the image
+                            base64ImageData = event.target.result;
+                            displayImage(event.target.result);
                         };
                         reader.readAsDataURL(blob);
                     }
                 }
             });
 
-            // Handle file upload via input
             $('#file-input').on('change', function(event) {
                 var file = event.target.files[0];
                 var reader = new FileReader();
                 reader.onload = function(event) {
-                    base64ImageData = event.target.result; // Save the Base64 encoded image
-                    displayImage(event.target.result); // Display the image
+                    base64ImageData = event.target.result;
+                    displayImage(event.target.result);
                 };
                 reader.readAsDataURL(file);
             });
 
-            // Handle the "Search" button click
             $('#upload-button').click(function() {
                 if (base64ImageData) {
-                    uploadImage(); // Call the function to upload the image
+                    uploadImage();
                 } else {
                     alert("Please upload or paste an image first.");
                 }
@@ -160,23 +214,15 @@
     </div>
     <div class="upload-or">OR</div>
     <input type="text" class="search-bar" placeholder="Paste image link">
-    <!-- Upload button -->
     <button class="upload-button" id="upload-button">Generate Statistics</button>
-
-    <!-- Loading Animation -->
+    <div id="missing-fields" class="missing-fields" style="display:none;"></div>
+    <button class="send-button" id="send-button" style="display:none;">Send Data</button>
     <div id="loading-animation"><br><br><br>Generating statistics...<br><i>takes 5-10 seconds</i></div>
-
     <br>
     <br>
     <br>
-
     <div id="Note"><b>Note: Upload the screenshot with the statistics in horizontal orientation or in an orientation such that none of the text has any rotation</b></div>
-
-
-    <!-- Image Preview -->
     <img id="image-preview" style="display:none;"/>
-
-    <!-- HTML Output -->
     <pre id="html-output" style="display:none;"></pre>
 </div>
 </body>
