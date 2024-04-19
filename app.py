@@ -120,10 +120,6 @@ def main():
                 standardDiv.style.display = input.value.trim() === '' ? 'block' : 'none';
             }
 
-            document.addEventListener('DOMContentLoaded', function() {
-                searchExams();
-            });
-
             setTimeout(function() {
                 document.getElementById('tip').style.display = 'none';
             }, 10000);
@@ -224,26 +220,11 @@ def json_to_html(json_data):
     return render_html(json_data)
 
 
-my_keys = ['Date', 'Module Number', 'Name', 'Registered', 'Attempt made', 'Not present',
-           'Withdrawal with approved reasons', 'Not valid/cheating', 'Rejection', 'Percent. of exams assessed as failed',
-           'Average total', 'Average (assessed as passed)', 'Grade distribution']
-
-
 @app.route('/search', methods=['GET'])
 def search():
     query = request.args.get('query', '')
     if not query:
-        html = []
-        for search_result in requests.post('http://meilisearch:7700/indexes/exams/search', headers={'Content-Type': 'application/json'}, data=json.dumps({"q": "", "limit": 1000000})).json()['hits']:
-            grades = search_result.pop('Grade distribution')
-            search_result['Grade distribution'] = grades
-            new_dict = {}
-            for key, val in search_result.items():
-                for my_key in my_keys:
-                    if key in my_key:
-                        new_dict[key] = val
-            html.append(json_to_html(new_dict))
-        return html
+        return []
 
     search_results = index.search(query, {
         'attributesToRetrieve': ['Date', 'Module Number', 'Name', 'Registered',
