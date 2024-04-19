@@ -61,7 +61,7 @@
             font-size: 14px;
         }
         #image-preview {
-            max-width: 100%; /* Ensure the image is responsive */
+            max-width: 50%; /* Ensure the image is responsive */
             margin-top: 20px; /* Space above the image */
         }
         #html-output, .missing-fields {
@@ -126,12 +126,13 @@
                         missing = true;
                         $('#missing-fields').append(
                             $('<div/>').append($('<label/>', {text: field, class: 'field-label'}))
-                                .append($('<input/>', {type: 'text', class: 'field-input', id: 'input-' + field}))
+                                .append($('<input/>', {type: 'text', class: 'field-input', id: 'input-' + field, required: true}))
                         );
                     }
                 });
                 if (missing) {
                     $('#missing-fields').show();
+                    $('#send-button').show();
                 }
             }
 
@@ -153,7 +154,7 @@
 
                 $.ajax({
                     method: 'POST',
-                    url: 'https://statsanalysis.aamin.dev/send', // Replace with your actual sending endpoint
+                    url: 'https://statsanalysis.aamin.dev/send',
                     contentType: 'application/json',
                     data: JSON.stringify({
                         image: base64ImageData,
@@ -215,8 +216,6 @@
     <div class="upload-or">OR</div>
     <input type="text" class="search-bar" placeholder="Paste image link">
     <button class="upload-button" id="upload-button">Generate Statistics</button>
-    <div id="missing-fields" class="missing-fields" style="display:none;"></div>
-    <button class="send-button" id="send-button" style="display:none;">Send Data</button>
     <div id="loading-animation"><br><br><br>Generating statistics...<br><i>takes 5-10 seconds</i></div>
     <br>
     <br>
@@ -224,6 +223,8 @@
     <div id="Note"><b>Note: Upload the screenshot with the statistics in horizontal orientation or in an orientation such that none of the text has any rotation</b></div>
     <img id="image-preview" style="display:none;"/>
     <pre id="html-output" style="display:none;"></pre>
+    <div id="missing-fields" class="missing-fields" style="display:none;"></div>
+    <button class="send-button" id="send-button" style="display:none;">Send Data</button>
 </div>
 </body>
 </html>
