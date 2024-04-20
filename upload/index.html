@@ -138,14 +138,15 @@
                 requiredFields.forEach(function(field) {
                     if (!data[field]) {
                         missing = true;
+                        var description;
                         if (field === "Name") {
-                            field = "Name of the module"
+                            description = "Name of the module"
                         }
                         if (field === "Date") {
-                            field = "Date of the exam"
+                            description = "Date of the exam"
                         }
                         $('#missing-fields').append(
-                            $('<div/>').append($('<label/>', {text: field + ' *', class: 'field-label'}))
+                            $('<div/>').append($('<label/>', {text: description + ' *', class: 'field-label'}))
                                 .append($('<input/>', {type: 'text', class: 'field-input', id: 'input-' + field, required: true}))
                         );
                     }
