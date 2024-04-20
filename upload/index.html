@@ -57,6 +57,15 @@
         .upload-button:hover, .send-button:hover {
             background: #3079ed; /* Slightly darker blue on hover */
         }
+        .contact {
+            padding: 10px 20px;
+            background-color: #4285F4;
+            color: white;
+            text-decoration: none;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            display: inline-block;
+        }
         #image-preview {
             max-width: 50%;
             margin-top: 20px;
@@ -244,6 +253,9 @@
     <div id="Note2" style="display:none; margin-top: 1em"><i>The screenshots and analysed data will be manually assessed before being published. Any incorrect grade translations will be fixed in the manual process (E.g. missing 5.0X).</i></div>
     <pre id="html-output" style="display:none;"></pre>
     <pre id="json-output" style="display:none;"></pre>
+    <div style="position: fixed; bottom: 1em; right: 1em;">
+        <a href="https://aamin.dev" class="contact">Contact</a>
+    </div>
     <form onsubmit="send_data(); return false;">
         <div id="missing-fields" class="missing-fields" style="display:none;"></div>
         <div id="send-data-box" style="display:none;"></div>
