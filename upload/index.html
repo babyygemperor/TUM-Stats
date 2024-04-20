@@ -92,6 +92,7 @@
                 $('#html-output').empty().hide();
                 $('#missing-fields').empty().hide();
                 $('#send-button').hide();
+                $('#Note2').hide();
             }
 
             function uploadImage() {
@@ -110,8 +111,9 @@
                         $('#loading-animation').hide();
                         $('#json-output').text(JSON.stringify(data.json, null, 4));
                         $('#html-output').html(data.html).show();
-                        window.scrollTo(0, document.body.scrollHeight);
+                        $('#Note2').show();
                         checkMissingFields(data.json); // Check and display missing fields
+                        window.scrollTo(0, document.body.scrollHeight);
                     },
                     error: function() {
                         $('#loading-animation').hide();
@@ -237,6 +239,8 @@
     <br>
     <div id="Note"><b>Note: Upload the screenshot with the statistics in horizontal orientation or in an orientation such that none of the text has any rotation</b></div>
     <img id="image-preview" style="display:none;"/>
+    <br>
+    <div id="Note2" style="display:none; margin-top: 1em"><i>The screenshots and analysed data will be manually assessed before being published. Any incorrect grade translations will be fixed in the manual process</i></div>
     <pre id="html-output" style="display:none;"></pre>
     <pre id="json-output" style="display:none;"></pre>
     <form onsubmit="send_data(); return false;">
