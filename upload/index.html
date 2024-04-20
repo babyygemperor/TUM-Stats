@@ -139,15 +139,27 @@
                     if (!data[field]) {
                         missing = true;
                         var description;
+                        var type;
                         if (field === "Name") {
-                            description = "Name of the module"
+                            description = "Name of the module";
+                            type = 'text';
                         }
                         if (field === "Date") {
-                            description = "Date of the exam"
+                            description = "Date of the exam";
+                            type = 'date';
+                        }
+                        var inputField = $('<input/>', {
+                            type: type,
+                            class: 'field-input',
+                            id: 'input-' + field,
+                            required: true
+                        });
+                        if (type === 'date') {
+                            inputField.attr('max', new Date().toISOString().split('T')[0]);  // Set the max attribute to today's date
                         }
                         $('#missing-fields').append(
                             $('<div/>').append($('<label/>', {text: description + ' *', class: 'field-label'}))
-                                .append($('<input/>', {type: 'text', class: 'field-input', id: 'input-' + field, required: true}))
+                                .append(inputField)
                         );
                     }
                 });
