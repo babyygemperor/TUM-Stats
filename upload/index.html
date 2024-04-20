@@ -7,8 +7,8 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <style>
         body {
-            background: #202124;
-            color: #fff;
+            background: #ffffff; /* White background */
+            color: #000000; /* Black color for text */
             font-family: Arial, sans-serif;
         }
         .container {
@@ -17,13 +17,13 @@
             text-align: center;
         }
         .upload-area {
-            border: 2px dashed #fff;
+            border: 2px dashed #000000; /* Black dashed border */
             padding: 30px;
             margin-top: 20px;
             position: relative;
         }
         .upload-area:hover {
-            background: #444;
+            background: #e0e0e0; /* Lighter gray for hover */
         }
         .upload-input {
             position: absolute;
@@ -36,26 +36,26 @@
         }
         .upload-or {
             margin: 20px 0;
-            color: #aaa;
+            color: #808080; /* Dark gray color */
         }
         .search-bar {
             padding: 10px;
             width: calc(100% - 22px);
-            background: #555;
-            border: none;
-            color: white;
+            background: #f0f0f0; /* Very light gray for input fields */
+            border: 1px solid #ccc; /* Added border for better visibility */
+            color: black; /* Black text inside input fields */
             margin-bottom: 10px;
         }
         .upload-button, .send-button {
             padding: 10px 20px;
-            background: #4285f4;
+            background: #4285f4; /* Blue background */
             border: none;
-            color: white;
+            color: white; /* White text */
             cursor: pointer;
             width: 100%;
         }
         .upload-button:hover, .send-button:hover {
-            background: #3079ed;
+            background: #3079ed; /* Slightly darker blue on hover */
         }
         #image-preview {
             max-width: 50%;
@@ -65,9 +65,10 @@
             text-align: left;
             white-space: pre-wrap;
             word-wrap: break-word;
-            background: #333;
+            background: #f8f8f8; /* Light gray background */
             padding: 20px;
             margin-top: 20px;
+            border: 1px solid #ddd; /* Added subtle border */
         }
         #loading-animation {
             display: none;
@@ -76,9 +77,9 @@
         .field-input, .email-input {
             padding: 10px;
             width: calc(100% - 22px);
-            background: #555;
-            border: none;
-            color: white;
+            background: #f0f0f0; /* Very light gray for input fields */
+            border: 1px solid #ccc; /* Added border for better visibility */
+            color: black; /* Black text inside input fields */
             margin: 5px 0;
         }
     </style>
@@ -225,7 +226,7 @@
 </head>
 <body>
 <div class="container">
-    <h1 style="color: #fff;">Upload Statistics</h1>
+    <h1 style="color: #222;">Upload Statistics</h1>
     <div class="upload-area">
         <div class="upload-instructions">Drag an image here or <label for="file-input" style="color: #4285f4; cursor: pointer;">upload a file</label></div>
         <input type="file" id="file-input" class="upload-input">
