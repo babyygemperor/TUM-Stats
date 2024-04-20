@@ -88,6 +88,10 @@
 
             function displayImage(imageData) {
                 $('#image-preview').attr('src', imageData).show();
+                $('#json-output').empty();
+                $('#html-output').empty().hide();
+                $('#missing-fields').empty().hide();
+                $('#send-button').hide();
             }
 
             function uploadImage() {
@@ -219,8 +223,7 @@
 </head>
 <body>
 <div class="container">
-    <h1 style="color: #fff;">Upload Statistics (BETA VERSION)</h1>
-    <h3>Currently only does screenshot analysis and does not send any data</h3>
+    <h1 style="color: #fff;">Upload Statistics</h1>
     <div class="upload-area">
         <div class="upload-instructions">Drag an image here or <label for="file-input" style="color: #4285f4; cursor: pointer;">upload a file</label></div>
         <input type="file" id="file-input" class="upload-input">
