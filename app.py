@@ -1,4 +1,4 @@
-from flask import Flask, request
+from flask import Flask, request, render_template_string
 from meilisearch import Client
 from html import escape
 import json
@@ -27,7 +27,8 @@ def add_headers(response):
 @app.route('/', methods=['GET'])
 def main():
     query = request.args.get('query', '')
-    return render_template_string(open('template.html').read(), query=query)
+    print(query)
+    return render_template_string(open('templates/index.html').read(), query=query)
 
 
 def highlight(text, query):

@@ -7,7 +7,7 @@
 </head>
 <body>
 <div class="search-container">
-    <input type="text" id="searchBox" onkeyup="searchExams()" placeholder="Enter module number or name (e.g. IN0011)">
+    <input type="text" id="searchBox" name="query" value="{{ query }}" onkeyup="searchExams()" placeholder="Enter module number or name (e.g. IN0069)">
     <button id="contributeButton" onclick="location.href='/upload'">Contribute your stats</button>
 </div>
 <div class="note" id="tip">Tip: Use module numbers for consistent search results, as module names can vary.</div>
