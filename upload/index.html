@@ -102,6 +102,7 @@
                 $('#html-output').empty().hide();
                 $('#missing-fields').empty().hide();
                 $('#send-button').hide();
+                $('#duplicate-message').empty().hide();
                 $('#Note2').hide();
             }
 
@@ -111,6 +112,7 @@
                 $('#loading-animation').show();
                 $('#missing-fields').empty().hide(); // Reset missing fields
                 $('#send-button').hide();
+                $('#duplicate-message').empty().hide();
                 $('#Note2').hide();
 
                 $.ajax({
@@ -173,7 +175,7 @@
 
                 if (missing || !data.Email) {
                     $('#missing-fields').show();
-                    $('#send-button').show();
+                    $('#send-button').val('Send').show();
                 }
             }
 
@@ -224,10 +226,12 @@
                         query: allData['Name'].split(" ")[0] + " " + allData['Date']
                     }),
                     success: function(data) {
-                        var duplicateUrl = "https://stats.aamin.dev/?query=" + data['hits'][0]['Module Number'] + "%20" + data['hits'][0]['Date'];
-                        $('#duplicate-warning').show();
-                        $('#send-button').val('Send Anyway').show();
-                        $('#duplicate-message').html(`Looks like this stat already exists in my database. Please check <a href="${duplicateUrl}" target="_blank">this link</a> to confirm. If you believe this is a mistake, you can submit these stats regardless.`);
+                        if (allData['Date'] == data['hits'][0]['Date']) {
+                            var duplicateUrl = "https://stats.aamin.dev/?query=" + data['hits'][0]['Module Number'] + "%20" + data['hits'][0]['Date'];
+                            $('#duplicate-warning').show();
+                            $('#send-button').val('Send Anyway').show();
+                            $('#duplicate-message').html(`Looks like this stat already exists in my database. Please check <a href="${duplicateUrl}" target="_blank">this link</a> to confirm. If you believe this is a mistake, you can submit these stats regardless.`);
+                        }
                     },
                     error: function(data) {
                         console.log("Error occurred while checking if the stats already exist" + data);
