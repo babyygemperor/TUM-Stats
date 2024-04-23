@@ -212,10 +212,10 @@
                         query: allData['Name'].split(" ")[0] + " " + allData['Date']
                     }),
                     success: function(data) {
-                        console.log(data);
+                        console.log("Looks like this stat already exists in my database. Please check https://stats.aamin.dev/?query=" + data['hits']['Module Number'] + "%20" + data['hits']['Date'] + " to confirm. If you believe this is a mistake, then submit these stats regardless.");
                     },
                     error: function(data) {
-                        console.log(data);
+                        console.log("Error occurred while checking if the stats already exist" + data);
                     }
                 });
             }
