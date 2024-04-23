@@ -8,12 +8,15 @@
             display: flex;
             flex-direction: row;
             width: auto;
+            height: 85vh;
+            overflow-y: auto;
         }
         body {
             font-family: Arial, sans-serif;
             background-color: #f8f9fa;
             margin: 0;
-            padding: 20px;
+            padding: 0;
+            display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
@@ -28,15 +31,25 @@
         }
 
         img:hover {
-            transform: scale(1.05);
+            transform: scale(1.01);
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
 
         h1 {
-            position: fixed;
             padding: 10px 20px;
-            top: 1em;
+            position: fixed;
+            top: 0;
+            background-color: inherit;
             z-index: 100;
+            width: 100%;
+        }
+
+        hr {
+            width: 100%;
+        }
+
+        h5 {
+            margin-left: 10%;
         }
     </style>
 </head>
@@ -44,14 +57,24 @@
     <div class="images">
         <div class="good">
             <h1>Good Submissions</h1>
+            <hr width="1" style="0 auto" />
             <img src="good1.png" alt="Good Example 1">
             <br>
+            <hr width="1" style="0 auto" />
             <img src="good2.png" alt="Good Example 2">
+            <hr width="1" style="0 auto" />
         </div>
-        <hr>
+        <hr style="height: 74vw">
         <div class="bad">
             <h1>Bad Submissions</h1>
+            <hr width="1" style="0 auto" />
+            <h5>The text "1,0 sehr gut" etc are at an angle</h5>
             <img src="bad1.png" alt="Bad Example 1">
+            <hr width="1" style="0 auto" />
+            <br>
+            <h5>All the metadata is missing, there are only statistics and no names.</h5>
+            <img src="bad2.png" alt="Bad Example 2">
+            <hr width="1" style="0 auto" />
         </div>
     </div>
 </body>
