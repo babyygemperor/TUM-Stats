@@ -200,7 +200,7 @@
                         alert('Data sent successfully!');
                     },
                     error: function(data) {
-                        alert(data['error']);
+                        alert(data.responseJSON['error']);
                     }
                 });
             }
