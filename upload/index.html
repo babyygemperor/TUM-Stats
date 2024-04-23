@@ -199,8 +199,8 @@
                     success: function() {
                         alert('Data sent successfully!');
                     },
-                    error: function() {
-                        alert('Failed to send data.');
+                    error: function(data) {
+                        alert(data['error']);
                     }
                 });
             }
