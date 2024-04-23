@@ -156,7 +156,7 @@ def search():
 
 
 @app.route('/check', methods=['POST'])
-def search_api():
+def check_api():
     data = request.json
 
     search_results = index.search(data['query'], {
