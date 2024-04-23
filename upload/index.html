@@ -177,10 +177,10 @@
                 }
             }
 
-            send_data = function () {
-                var allData = JSON.parse($('#json-output').text());
+            function sendStats() {
+                const allData = JSON.parse($('#json-output').text());
                 ['Date', 'Name'].forEach(function(field) {
-                    var inputValue = $('#input-' + field).val();
+                    const inputValue = $('#input-' + field).val();
                     if (inputValue) {
                         allData[field] = inputValue;
                     }
@@ -203,6 +203,18 @@
                         alert(data.responseJSON['error']);
                     }
                 });
+            }
+
+            send_data = function () {
+                var allData = JSON.parse($('#json-output').text());
+                ['Date', 'Name'].forEach(function(field) {
+                    var inputValue = $('#input-' + field).val();
+                    if (inputValue) {
+                        allData[field] = inputValue;
+                    }
+                });
+
+                allData['Email'] = $('#input-email').val();
 
                 $.ajax({
                     method: 'POST',
@@ -212,10 +224,14 @@
                         query: allData['Name'].split(" ")[0] + " " + allData['Date']
                     }),
                     success: function(data) {
-                        console.log("Looks like this stat already exists in my database. Please check https://stats.aamin.dev/?query=" + data['hits'][0]['Module Number'] + "%20" + data['hits'][0]['Date'] + " to confirm. If you believe this is a mistake, then submit these stats regardless.");
+                        var duplicateUrl = "https://stats.aamin.dev/?query=" + data['hits'][0]['Module Number'] + "%20" + data['hits'][0]['Date'];
+                        $('#duplicate-warning').show();
+                        $('#send-button').val('Send Anyway').show();
+                        $('#duplicate-message').html(`Looks like this stat already exists in my database. Please check <a href="${duplicateUrl}" target="_blank">this link</a> to confirm. If you believe this is a mistake, you can submit these stats regardless.`);
                     },
                     error: function(data) {
                         console.log("Error occurred while checking if the stats already exist" + data);
+                        sendStats();
                     }
                 });
             }
@@ -289,7 +305,10 @@
     <form onsubmit="send_data(); return false;">
         <div id="missing-fields" class="missing-fields" style="display:none;"></div>
         <div id="send-data-box" style="display:none;"></div>
-        <input type="submit" class="send-button" id="send-button" style="display:none;"/>
+        <div id="duplicate-warning" style="display:none; color: red;">
+            <p id="duplicate-message"></p>
+        </div>
+        <input type="submit" class="send-button" id="send-button" value="Send" style="display:none;"/>
     </form>
 </div>
 </body>
