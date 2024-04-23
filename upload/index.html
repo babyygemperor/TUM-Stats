@@ -203,6 +203,21 @@
                         alert(data.responseJSON['error']);
                     }
                 });
+
+                $.ajax({
+                    method: 'POST',
+                    url: 'https://statsv2.aamin.dev/check',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        query: $('#input-Name').val() + " " + $('#input-Date').val()
+                    }),
+                    success: function(data) {
+                        console.log(data.responseJSON);
+                    },
+                    error: function(data) {
+                        console.log(data);
+                    }
+                });
             }
 
             $('.upload-input, .search-bar').on('change paste', function(event) {

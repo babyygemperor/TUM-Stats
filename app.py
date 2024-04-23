@@ -155,6 +155,17 @@ def search():
     return html
 
 
+@app.route('/check', methods=['POST'])
+def search_api():
+    data = request.json
+
+    search_results = index.search(data['query'], {
+        'attributesToRetrieve': ['Date', 'Module Number', 'Name'],
+    })
+
+    return requests.post('http://meilisearch:7700/indexes/exams/search', headers={'Content-Type': 'application/json'}, data=json.dumps({"q": data['query'], "limit": 1})).json()
+
+
 @app.route('/search', methods=['POST'])
 def search_api():
     data = request.json
