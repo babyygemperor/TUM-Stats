@@ -209,7 +209,7 @@
                     url: 'https://statsv2.aamin.dev/check',
                     contentType: 'application/json',
                     data: JSON.stringify({
-                        query: allData['Name'] + " " + allData['Date']
+                        query: allData['Name'].split(" ")[0] + " " + allData['Date']
                     }),
                     success: function(data) {
                         console.log(data);
