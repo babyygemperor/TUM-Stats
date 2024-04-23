@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Examples</title>
+    <style>
+        .images {
+            display: flex;
+            flex-direction: row;
+            width: auto;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 20px;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        img {
+            width: 45vw;
+            margin: 10px;
+            padding: 2em;
+            border-radius: 8px;
+            transition: transform 0.3s ease;
+        }
+
+        img:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            position: fixed;
+            padding: 10px 20px;
+            top: 1em;
+            z-index: 100;
+        }
+    </style>
+</head>
+<body>
+    <div class="images">
+        <div class="good">
+            <h1>Good Submissions</h1>
+            <img src="good1.png" alt="Good Example 1">
+            <br>
+            <img src="good2.png" alt="Good Example 2">
+        </div>
+        <hr>
+        <div class="bad">
+            <h1>Bad Submissions</h1>
+            <img src="bad1.png" alt="Bad Example 1">
+        </div>
+    </div>
+</body>
+</html>
