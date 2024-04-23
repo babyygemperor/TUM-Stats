@@ -7,7 +7,7 @@
 </head>
 <body>
 <div class="search-container">
-    <input type="text" id="searchBox" name="query" value="{{ query }}" onkeyup="searchExams()" placeholder="Enter module number or name (e.g. IN0069)">
+    <input type="text" id="searchBox" onkeyup="searchExams()" placeholder="Enter module number or name (e.g. IN0069)">
     <button id="contributeButton" onclick="location.href='/upload'">Contribute your stats</button>
 </div>
 <div class="note" id="tip">Tip: Use module numbers for consistent search results, as module names can vary.</div>
@@ -17,12 +17,9 @@
     <a href="https://stats.aamin.dev/old" class="old-link">Visit Old Website</a>
 </div>
 <script>
-    function searchExams(query = null) {
+    function searchExams() {
         const input = document.getElementById('searchBox');
-        if (query !== null) {
-            input.value = query;
-        }
-        const searchTerm = query || input.value;
+        const searchTerm = input.value;
         const standardDiv = document.getElementById('standard');
 
         if (searchTerm.trim() !== '') {
@@ -46,10 +43,10 @@
     }
 
     window.onload = function() {
-        const urlParams = new URLSearchParams(window.location.search);
-        const query = urlParams.get('query');
+        const query = new URLSearchParams(window.location.search).get('query');
         if (query) {
-            searchExams(query);
+            document.getElementById('searchBox').value = query;
+            searchExams();
         }
     };
 
