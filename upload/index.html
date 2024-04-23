@@ -239,8 +239,9 @@
                                 $('#duplicate-warning').show();
                                 $('#send-button').val('Send Anyway').show();
                                 $('#duplicate-message').html(`Looks like this stat already exists in my database. Please check <a href="${duplicateUrl}" target="_blank">this link</a> to confirm. If you believe this is a mistake, you can submit these stats regardless.`).show();
+                            } else {
+                                sendStats();
                             }
-                            sendStats();
                         },
                         error: function (data) {
                             console.log("Error occurred while checking if the stats already exist" + data);
