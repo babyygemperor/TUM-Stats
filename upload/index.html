@@ -157,7 +157,12 @@
                             class: 'field-input',
                             id: 'input-' + field,
                             required: true
+                        }).on('change', function() {
+                            $('#duplicate-warning').hide();
+                            $('#duplicate-message').empty();
+                            $('#send-button').val('Send');
                         });
+
                         if (type === 'date') {
                             inputField.attr('max', new Date().toISOString().split('T')[0]);  // Set the max attribute to today's date
                         }
@@ -208,36 +213,41 @@
             }
 
             send_data = function () {
-                var allData = JSON.parse($('#json-output').text());
-                ['Date', 'Name'].forEach(function(field) {
-                    var inputValue = $('#input-' + field).val();
-                    if (inputValue) {
-                        allData[field] = inputValue;
-                    }
-                });
-
-                allData['Email'] = $('#input-email').val();
-
-                $.ajax({
-                    method: 'POST',
-                    url: 'https://statsv2.aamin.dev/check',
-                    contentType: 'application/json',
-                    data: JSON.stringify({
-                        query: allData['Name'].split(" ")[0] + " " + allData['Date']
-                    }),
-                    success: function(data) {
-                        if (allData['Date'] == data['hits'][0]['Date']) {
-                            var duplicateUrl = "https://stats.aamin.dev/?query=" + data['hits'][0]['Module Number'] + "%20" + data['hits'][0]['Date'];
-                            $('#duplicate-warning').show();
-                            $('#send-button').val('Send Anyway').show();
-                            $('#duplicate-message').html(`Looks like this stat already exists in my database. Please check <a href="${duplicateUrl}" target="_blank">this link</a> to confirm. If you believe this is a mistake, you can submit these stats regardless.`).show();
+                if ($('#send-button').val() == 'Send Anyway') {
+                    sendStats();
+                } else {
+                    var allData = JSON.parse($('#json-output').text());
+                    ['Date', 'Name'].forEach(function (field) {
+                        var inputValue = $('#input-' + field).val();
+                        if (inputValue) {
+                            allData[field] = inputValue;
                         }
-                    },
-                    error: function(data) {
-                        console.log("Error occurred while checking if the stats already exist" + data);
-                        sendStats();
-                    }
-                });
+                    });
+
+                    allData['Email'] = $('#input-email').val();
+
+                    $.ajax({
+                        method: 'POST',
+                        url: 'https://statsv2.aamin.dev/check',
+                        contentType: 'application/json',
+                        data: JSON.stringify({
+                            query: allData['Name'].split(" ")[0] + " " + allData['Date']
+                        }),
+                        success: function (data) {
+                            if (allData['Date'] == data['hits'][0]['Date']) {
+                                var duplicateUrl = "https://stats.aamin.dev/?query=" + data['hits'][0]['Module Number'] + "%20" + data['hits'][0]['Date'];
+                                $('#duplicate-warning').show();
+                                $('#send-button').val('Send Anyway').show();
+                                $('#duplicate-message').html(`Looks like this stat already exists in my database. Please check <a href="${duplicateUrl}" target="_blank">this link</a> to confirm. If you believe this is a mistake, you can submit these stats regardless.`).show();
+                            }
+                            sendStats();
+                        },
+                        error: function (data) {
+                            console.log("Error occurred while checking if the stats already exist" + data);
+                            sendStats();
+                        }
+                    });
+                }
             }
 
             $('.upload-input, .search-bar').on('change paste', function(event) {
