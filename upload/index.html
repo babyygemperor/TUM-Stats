@@ -110,6 +110,8 @@
                 $('#json-output').hide();
                 $('#loading-animation').show();
                 $('#missing-fields').empty().hide(); // Reset missing fields
+                $('#send-button').hide();
+                $('#Note2').hide();
 
                 $.ajax({
                     method: 'POST',

@@ -17,25 +17,41 @@
     <a href="https://stats.aamin.dev/old" class="old-link">Visit Old Website</a>
 </div>
 <script>
-    function searchExams() {
+    function searchExams(query = null) {
         const input = document.getElementById('searchBox');
+        if (query !== null) {
+            input.value = query;
+        }
+        const searchTerm = query || input.value;
         const standardDiv = document.getElementById('standard');
 
-        fetch(`/search?query=${encodeURIComponent(input.value)}`)
-            .then(response => response.json())
-            .then(data => {
-                document.getElementById("html-output").innerHTML = '';
-                data.forEach(element => {
-                    const div = document.createElement('div');
-                    div.classList.add('stats');
-                    div.innerHTML = element;
-                    document.getElementById('html-output').appendChild(div);
-                });
-            })
-            .catch(error => console.error('Error:', error));
+        if (searchTerm.trim() !== '') {
+            fetch(`/search?query=${encodeURIComponent(searchTerm)}`)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById("html-output").innerHTML = '';
+                    data.forEach(element => {
+                        const div = document.createElement('div');
+                        div.classList.add('stats');
+                        div.innerHTML = element;
+                        document.getElementById('html-output').appendChild(div);
+                    });
+                })
+                .catch(error => console.error('Error:', error));
 
-        standardDiv.style.display = input.value.trim() === '' ? 'block' : 'none';
+            standardDiv.style.display = 'none';
+        } else {
+            standardDiv.style.display = 'block';
+        }
     }
+
+    window.onload = function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const query = urlParams.get('query');
+        if (query) {
+            searchExams(query);
+        }
+    };
 
     setTimeout(function() {
         document.getElementById('tip').style.display = 'none';
