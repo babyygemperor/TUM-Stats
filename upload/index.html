@@ -209,10 +209,10 @@
                     url: 'https://statsv2.aamin.dev/check',
                     contentType: 'application/json',
                     data: JSON.stringify({
-                        query: $('#input-Name').val() + " " + $('#input-Date').val()
+                        query: allData['Name'] + " " + allData['Date']
                     }),
                     success: function(data) {
-                        console.log(data.responseJSON);
+                        console.log(data);
                     },
                     error: function(data) {
                         console.log(data);
