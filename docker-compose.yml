@@ -1,4 +1,5 @@
 version: '3.8'
+
 services:
   stats-api:
     build: .
@@ -12,3 +13,9 @@ services:
     build: ./upload
     ports:
       - "8079:8079"
+    restart: unless-stopped
+  stats-review:
+    build: ./private-review
+    ports:
+      - "9981:9981"
+    restart: unless-stopped

@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JSON Data Viewer</title>
+    <style>
+        body {
+            background-color: #f4f4f9;
+            font-family: 'Arial', sans-serif;
+        }
+
+        .container {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        textarea {
+            border: 2px solid #ccc;
+            border-radius: 4px;
+            padding: 10px;
+            margin-top: 20px;
+        }
+
+        button {
+            margin-right: 10px;
+        }
+
+        img {
+            border-radius: 4px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        table {
+            width: 100%;
+        }
+
+        table, th, td {
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f8f8f8;
+        }
+    </style>
+</head>
+<body>
+<div class="container mt-5" style="margin-left: 2em; margin-right: 2em">
+    <p>Total {{ items | length }} new statistics left</p>
+    {% for item in items %}
+        <div class="row mb-3" id="item-{{ item.timestamp }}" style="display: flex; margin-bottom: 2em">
+            <div class="col-md-6" style="width: 40%; margin: 1em">
+                <img src="{{ item.image }}" alt="Data Image" class="img-fluid" style="max-width: 100%;">
+                <div class="col-md-6">
+                    <textarea id="json-data-{{ item.timestamp }}" style="width:100%; height:200px; font-size: 24px">
+                        {{ item.data | tojson }}
+                    </textarea>
+                    <br>
+                    <button onclick="editData('{{ item.timestamp }}')" class="btn btn-primary">Edit</button>
+                    <button onclick="acceptData('{{ item.timestamp }}')" class="btn btn-success">Accept</button>
+                </div>
+            </div>
+            <hr style="0 auto"/>
+            <div class="col-md-6" style="width: 50%; margin: 1em">
+                <div id="html-{{ item.timestamp }}">
+                    {{ json_to_html(item.data) | safe }}
+                </div>
+                <a href="https://stats.aamin.dev/?query={{ item.data['Module Number'] }} {{ item.data['Date'] }}" id="link-{{ item.timestamp }}">https://stats.aamin.dev/?query={{ item.data['Module Number'] }} {{ item.data['Date'] }}</a>
+                <div id="duplicate-warning-{{ item.timestamp }}" style="display:none;">
+                    <p id="duplicate-message-{{ item.timestamp }}"></p>
+                </div>
+            </div>
+        </div>
+        <hr>
+    {% endfor %}
+</div>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const textAreas = document.querySelectorAll('textarea');
+        textAreas.forEach(textArea => {
+            prettyPrintJson(textArea);
+        });
+
+        // Loop through each item to check for duplicates
+        const items = document.querySelectorAll('.row');
+        items.forEach(item => {
+            const itemData = JSON.parse(document.getElementById('json-data-' + item.id.substring(5)).value);
+            checkDuplicate(itemData, item.id.substring(5));
+        });
+    });
+
+    function checkDuplicate(itemData, timestamp) {
+        $.ajax({
+            method: 'POST',
+            url: 'https://statsv2.aamin.dev/check',
+            contentType: 'application/json',
+            data: JSON.stringify({
+                query: itemData['Name'].split(" ")[0] + " " + itemData['Date']
+            }),
+            success: function (data) {
+                if (itemData['Date'] == data['hits'][0]['Date']) {
+                    var duplicateUrl = "https://stats.aamin.dev/?query=" + data['hits'][0]['Module Number'] + "%20" + data['hits'][0]['Date'];
+                    var warningElement = document.getElementById('duplicate-warning-' + timestamp);
+                    var messageElement = document.getElementById('duplicate-message-' + timestamp);
+                    warningElement.style.display = 'block';
+                    messageElement.innerHTML = `Looks like this stat already exists in my database. Please check <a href="${duplicateUrl}" target="_blank">this link</a> to confirm.`;
+                }
+            },
+            error: function (data) {
+                console.log("Error occurred while checking if the stats already exist: " + data);
+            }
+        });
+    }
+
+    function prettyPrintJson(textArea) {
+        try {
+            const jsonData = JSON.parse(textArea.value.trim());
+            textArea.value = JSON.stringify(jsonData, null, 4);
+        } catch (e) {
+            console.error('Error parsing JSON:', e);
+        }
+    }
+
+    function editData(timestamp) {
+        var jsonDataElement = document.getElementById('json-data-' + timestamp);
+        var linkElement = document.getElementById('link-' + timestamp);
+        try {
+            var jsonData = JSON.parse(jsonDataElement.value);
+            var htmlContent = jsonToHtml(jsonData); // Assume jsonToHtml is available or simulate it
+            document.getElementById('html-' + timestamp).innerHTML = htmlContent;
+            linkElement.href = 'https://stats.aamin.dev/?query=' + jsonData['Module Number'] + '%20' + jsonData['Date']
+            linkElement.text = 'https://stats.aamin.dev/?query=' + jsonData['Module Number'] + ' ' + jsonData['Date']
+        } catch (e) {
+            console.error('Invalid JSON:', e);
+        }
+    }
+
+    function acceptData(timestamp) {
+        editData(timestamp);
+        var jsonDataElement = document.getElementById('json-data-' + timestamp);
+        try {
+            var data = JSON.parse(jsonDataElement.value);
+            fetch(`/update/${timestamp}`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({data: data})
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        window.location.reload();
+                    } else {
+                        console.log(data.success + "; " + data.message);
+                        alert(data.message);
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        } catch (e) {
+            console.error('Invalid JSON:', e);
+        }
+    }
+
+    // Simulate jsonToHtml function or adapt as necessary
+    function jsonToHtml(jsonData) {
+        function escapeHtml(unsafe) {
+            return unsafe.replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        function renderDistribution(distribution) {
+            const requiredGrades = ["1.0", "1.3", "1.7", "2.0", "2.3", "2.7", "3.0", "3.3", "3.7", "4.0", "4.3", "4.7", "5.0"];
+            requiredGrades.forEach(grade => {
+                if (!distribution.hasOwnProperty(grade)) {
+                    distribution[grade] = "0";
+                }
+            });
+
+            let totalCandidates = Object.values(distribution).reduce((sum, count) => sum + parseInt(count), 0);
+
+            let htmlContent = '<div style="display: flex; flex-direction: row; align-items: flex-end; position: relative; margin-top:1em; margin-bottom:3em; padding-right:3em; margin-right:2em; margin-left:2em; width: auto; height: 24em; z-index: 100;">' +
+                '<div style="position: absolute; left: 0; height: 23em; width: 1px; background-color: black; bottom: 20px;"></div>' +
+                '<div style="position: absolute; width: 100%; height: 1px; background-color: black; bottom: 20px; left: 0;"></div>';
+
+            const gradeColours = {
+                "1.0": "rgb(0,255,0)", "1.1": "rgb(12,255,0)", "1.2": "rgb(25,255,0)", "1.3": "rgb(38,255,0)",
+                "1.4": "rgb(51,255,0)", "1.5": "rgb(63,255,0)", "1.6": "rgb(76,255,0)", "1.7": "rgb(89,255,0)",
+                "1.8": "rgb(101,255,0)", "1.9": "rgb(114,255,0)", "2.0": "rgb(127,255,0)", "2.1": "rgb(140,255,0)",
+                "2.2": "rgb(153,255,0)", "2.3": "rgb(165,255,0)", "2.4": "rgb(178,255,0)", "2.5": "rgb(191,255,0)",
+                "2.6": "rgb(204,255,0)", "2.7": "rgb(216,255,0)", "2.8": "rgb(229,255,0)", "2.9": "rgb(242,255,0)",
+                "3.0": "rgb(255,255,0)", "3.1": "rgb(255,242,0)", "3.2": "rgb(255,229,0)", "3.3": "rgb(255,216,0)",
+                "3.4": "rgb(255,204,0)", "3.5": "rgb(255,191,0)", "3.6": "rgb(255,178,0)", "3.7": "rgb(255,165,0)",
+                "3.8": "rgb(255,153,0)", "3.9": "rgb(255,140,0)", "4.0": "rgb(255,127,0)", "4.1": "rgb(255,114,0)",
+                "4.2": "rgb(255,101,0)", "4.3": "rgb(255,89,0)", "4.4": "rgb(255,76,0)", "4.5": "rgb(255,63,0)",
+                "4.6": "rgb(255,51,0)", "4.7": "rgb(255,38,0)", "4.8": "rgb(255,25,0)", "4.9": "rgb(255,12,0)",
+                "5.0": "rgb(255,0,0)", "5.0X": "rgb(255,0,50)", "5.0 X": "rgb(255,0,50)",
+                "5.0 X Nicht erschienen": "rgb(255,0,50)", "5.0X Nicht erschienen": "rgb(255,0,50)",
+                "5.0U": "rgb(255,0,50)", "5.0 U": "rgb(255,0,50)",
+                "5.0 Ungültig": "rgb(255,0,50)", "5.0U Ungültig": "rgb(255,0,50)", "5.0 U Ungültig": "rgb(255,0,50)",
+                "5.0 U Täuschung": "rgb(255,0,50)", "5.0U Täuschung": "rgb(255,0,50)",
+                "5.0 U Ungültig/Täuschung": "rgb(255,0,50)", "5.0U Ungültig/Täuschung": "rgb(255,0,50)",
+                "5.0Z": "rgb(255,0,50)", "5.0 Z": "rgb(255,0,50)",
+                "5.0Z Zurückweisung": "rgb(255,0,50)", "5.0 Z Zurückweisung": "rgb(255,0,50)",
+                "Unknown": "rgb(100,100,100)"
+            };
+
+            let first = true;
+            const sortedKeys = Object.keys(distribution).sort();
+
+            sortedKeys.forEach(grade => {
+                const count = distribution[grade];
+                let percentage = totalCandidates === 0 ? 0 : (parseInt(count) / totalCandidates) * 100;
+                let barHeight = totalCandidates === 0 ? 0 : `${(parseInt(count) / Math.max(...Object.values(distribution).map(x => parseInt(x)))) * 20}em`;
+                let colour = gradeColours[grade] || "rgb(100,100,100)";
+                if (first) {
+                    htmlContent += '<div style="width: 20%; margin: 0 0 0 1%; position: relative;">';
+                    first = false;
+                } else {
+                    htmlContent += '<div style="width: 20%; position: relative;">';
+                }
+                htmlContent += `<div style="position: absolute; margin-left: 0; width: 100%; margin-top: 3.0em; height: ${barHeight}; background-color: ${colour}; bottom: 21px; z-index: 101">`;
+                if (percentage > 0) {
+                    htmlContent += `<div style="color: black; text-align: center; position: absolute; bottom: 100%; width: 100%; margin-bottom: 1.0em">${percentage.toFixed(2)}%<br>${count} K.</div></div>`;
+                } else {
+                    htmlContent += `<div style="color: black; text-align: center; position: absolute; bottom: 100%; width: 100%; margin-bottom: 2.0em"><br>${count} K.</div></div>`;
+                }
+                htmlContent += `<div style="position: absolute; width: 100%; text-align: center; margin-top: -1em;">${escapeHtml(grade)}</div>`;
+                htmlContent += '</div>';
+            });
+
+            htmlContent += '</div>';
+            return htmlContent;
+        }
+
+        function renderHtml(data, depth = 0) {
+            let htmlContent = "";
+            let distributionHtml = "";
+            if (data instanceof Object) {
+                if (depth === 0) {
+                    const title = data.Name || '';
+                    htmlContent += `<h3>${title}</h3>\n`;
+                    htmlContent += "<table>\n<tbody>\n";
+                }
+                for (const [key, value] of Object.entries(data)) {
+                    if (value instanceof Object && key === "Grade distribution") {
+                        htmlContent += `<tr><td colspan='2'>${escapeHtml(key)}: Percent % / grade\nK. = Number of candidates</td></tr>\n`;
+                        distributionHtml = renderDistribution(value);
+                    } else if (value instanceof Object) {
+                        continue;
+                    } else {
+                        const labelId = `ST${Math.abs(String(key).hashCode()) % 1000000000000}`;
+                        htmlContent += `<tr><td><label for='${labelId}'>${escapeHtml(key)}:</label></td>`;
+                        htmlContent += `<td id='${labelId}'>${value}</td></tr>\n`;
+                    }
+                }
+                if (depth === 0) {
+                    htmlContent += "</tbody>\n</table>\n";
+                }
+            }
+            htmlContent += distributionHtml;
+            return htmlContent;
+        }
+
+        return renderHtml(jsonData);
+    }
+
+    // Helper function to create a hash code from a string
+    String.prototype.hashCode = function () {
+        let hash = 0;
+        for (let i = 0; i < this.length; i++) {
+            const char = this.charCodeAt(i);
+            hash = ((hash << 5) - hash) + char;
+            hash |= 0; // Convert to 32bit integer
+        }
+        return hash;
+    };
+
+</script>
+
+</body>
+</html>
