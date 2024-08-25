@@ -13,9 +13,13 @@ services:
     build: ./upload
     ports:
       - "8079:8079"
+    volumes:
+      - ./stats:/stats
     restart: unless-stopped
   stats-review:
     build: ./private-review
     ports:
       - "9981:9981"
+    volumes:
+      - ./stats:/stats
     restart: unless-stopped

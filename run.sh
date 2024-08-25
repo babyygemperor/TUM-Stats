@@ -8,8 +8,8 @@ docker compose up -d --no-deps --build
 
 CONTAINER_ID=$(docker ps | grep tum-stats-meilisearch | awk '{print $1;}')
 
-docker cp master_with_id.json $CONTAINER_ID:/meili_data
-docker cp private-review/new_data_only.json $CONTAINER_ID:/meili_data
+docker cp stats/master_with_id.json $CONTAINER_ID:/meili_data
+docker cp stats/new_data_only.json $CONTAINER_ID:/meili_data
 
 sleep 5
 
