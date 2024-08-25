@@ -24,13 +24,6 @@ def add_headers(response):
     return response
 
 
-@app.route('/', methods=['GET'])
-def main():
-    query = request.args.get('query', '')
-    print(query)
-    return render_template_string(open('templates/index.html').read(), query=query)
-
-
 def highlight(text, query):
     text = escape(text)
     query_words = query.split()
