@@ -100,7 +100,7 @@
     function checkDuplicate(itemData, timestamp) {
         $.ajax({
             method: 'POST',
-            url: 'https://statsv2.aamin.dev/check',
+            url: 'https://stats-api.aamin.dev/check',
             contentType: 'application/json',
             data: JSON.stringify({
                 query: itemData['Name'].split(" ")[0] + " " + itemData['Date']
