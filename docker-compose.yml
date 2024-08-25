@@ -1,6 +1,6 @@
 version: '3.8'
 services:
-  flask-app:
+  stats-api:
     build: .
     ports:
       - "6655:6655"
@@ -8,3 +8,7 @@ services:
   meilisearch:
     image: getmeili/meilisearch
     restart: unless-stopped
+  stats-upload:
+    build: ./upload
+    ports:
+      - "8079:8079"

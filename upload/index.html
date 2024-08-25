@@ -117,7 +117,7 @@
 
                 $.ajax({
                     method: 'POST',
-                    url: 'https://statsanalysis.aamin.dev/upload',
+                    url: 'https://stats-api.aamin.dev/upload',
                     data: {
                         image: base64ImageData
                     },
@@ -197,7 +197,7 @@
 
                 $.ajax({
                     method: 'POST',
-                    url: 'https://statsanalysis.aamin.dev/send',
+                    url: 'https://stats-api.aamin.dev/send',
                     contentType: 'application/json',
                     data: JSON.stringify({
                         image: base64ImageData,
@@ -228,14 +228,14 @@
 
                     $.ajax({
                         method: 'POST',
-                        url: 'https://statsv2.aamin.dev/check',
+                        url: 'https://stats-api.aamin.dev/check',
                         contentType: 'application/json',
                         data: JSON.stringify({
                             query: allData['Name'].split(" ")[0] + " " + allData['Date']
                         }),
                         success: function (data) {
                             if (allData['Date'] == data['hits'][0]['Date']) {
-                                var duplicateUrl = "https://stats.aamin.dev/?query=" + data['hits'][0]['Module Number'] + "%20" + data['hits'][0]['Date'];
+                                var duplicateUrl = "https://stats-api.aamin.dev/?query=" + data['hits'][0]['Module Number'] + "%20" + data['hits'][0]['Date'];
                                 $('#duplicate-warning').show();
                                 $('#send-button').val('Send Anyway').show();
                                 $('#duplicate-message').html(`Looks like this stat already exists in my database. Please check <a href="${duplicateUrl}" target="_blank">this link</a> to confirm. If you believe this is a mistake, you can submit these stats regardless.`).show();
