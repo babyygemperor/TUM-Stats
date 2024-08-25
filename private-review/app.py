@@ -7,7 +7,7 @@ import json
 
 app = Flask(__name__)
 
-original_data = '/stats/data.json'
+original_data = '/stats/new_data.json'
 processed_data = '/stats/processed_data.json'
 just_data = '/stats/new_data_only.json'
 original_json_data = None
