@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   stats-api:
-    build: .
+    build: ./api
     ports:
       - "6655:6655"
     restart: unless-stopped
