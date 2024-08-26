@@ -75,7 +75,7 @@ def json_to_html(json_data, query):
             for k, v in data['Grade distribution'].items():
                 if k in ["1.0", "1.3", "1.7", "2.0", "2.3", "2.7", "3.0", "3.3", "3.7", "4.0", "B pass", "B"]:
                     passed += int(v)
-            return f"{str(100.0 - round(passed / total_students * 100, 2))}%"
+            return f"{str(round((1.0 - (passed / total_students)) * 100, 2))}%"
         if key == 'Average total':
             grade = 0
             total_students = get_value('Registered', 0, data)
