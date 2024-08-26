@@ -78,7 +78,10 @@ def json_to_html(json_data, query):
             for k, v in data['Grade distribution'].items():
                 if k.startswith("5.0"):
                     k = "5.0"
-                grade += (int(v) * float(k))
+                try:
+                    grade += (int(v) * float(k))
+                except ValueError as e:
+                    print(e)
             return round(grade / total_students * 100, 3)
         if key == 'Average (assessed as passed)':
             grade = 0
