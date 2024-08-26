@@ -93,7 +93,9 @@ def json_to_html(json_data, query):
             for k, v in data['Grade distribution'].items():
                 if k in ["1.0", "1.3", "1.7", "2.0", "2.3", "2.7", "3.0", "3.3", "3.7", "4.0"]:
                     grade += (int(v) * float(k))
-                    total_students += float(k)
+                    total_students += float(v)
+            if total_students == 0.0:
+                return 0.0
             return round(grade / total_students, 3)
         return value
 
@@ -187,11 +189,11 @@ def json_to_html(json_data, query):
         return html_content
 
     keys = ['Registered', 'Attempt made', 'Not present', 'Not valid/cheating', 'Rejection',
-            'Percent. of exams passed', 'Average total', 'Average (assessed as passed)']
+            'Percent. of exams failed', 'Average total', 'Average (assessed as passed)']
 
     for key in keys:
         if key not in json_data:
-            json_data[key] = None
+            json_data[key] = "-"
 
     return render_html(json_data)
 
