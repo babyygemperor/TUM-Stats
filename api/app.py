@@ -110,7 +110,7 @@ def json_to_html(json_data, query):
                     value = highlight(str(value), query)
                     html_content += f"<tr><td><label for='{label_id}'>{escape(str(key))}:</label></td>"
                     html_content += f"<td id='{label_id}'>{get_value(key, value, data)}</td></tr>\n"
-            html_content += f"<tr><td colspan='2'>{escape(str("Grade distribution"))}: Percent % / grade\nK. = Number of candidates</td></tr>\n"
+            html_content += f"<tr><td colspan='2'>{escape(str('Grade distribution'))}: Percent % / grade\nK. = Number of candidates</td></tr>\n"
             distribution_html = render_distribution(data["Grade distribution"])
             if depth == 0:
                 html_content += "</tbody>\n</table>\n"
