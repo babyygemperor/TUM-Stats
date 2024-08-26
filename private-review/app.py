@@ -42,52 +42,52 @@ def json_to_html(json_data):
         if key == 'Registered':
             return_value = 0
             for k, v in data['Grade distribution'].items():
-                return_value += v
+                return_value += int(v)
             return return_value
         if key == 'Attempt made':
             return_value = 0
             for k, v in data['Grade distribution'].items():
                 if k in ["1.0", "1.3", "1.7", "2.0", "2.3", "2.7", "3.0", "3.3", "3.7", "4.0", "4.3", "4.7", "5.0", "B pass", "B", "N fail", "N"]:
-                    return_value += v
+                    return_value += int(v)
             return return_value
         if key == 'Not present':
             return_value = 0
             for k, v in data['Grade distribution'].items():
                 if k in ["5.0X", "5.0 X", "5.0 X Nicht erschienen", "5.0 X Nicht erschienen"]:
-                    return_value += v
+                    return_value += int(v)
             return return_value
         if key == 'Rejection':
             return_value = 0
             for k, v in data['Grade distribution'].items():
                 if k in ["5.0Z", "5.0 Z", "5.0Z Zurückweisung", "5.0 Z Zurückweisung"]:
-                    return_value += v
+                    return_value += int(v)
             return return_value
         if key == 'Not valid/cheating':
             return_value = 0
             for k, v in data['Grade distribution'].items():
                 if k in ["5.0U", "5.0 U", "5.0 Ungültig", "5.0U Ungültig", "5.0 U Ungültig",
                  "5.0 U Täuschung", "5.0U Täuschung", "5.0 U Ungültig/Täuschung", "5.0U Ungültig/Täuschung"]:
-                    return_value += v
+                    return_value += int(v)
             return return_value
         if key == 'Percent. of exams passed':
             passed = 0
             total_students = get_value('Registered', 0, data)
             for k, v in data['Grade distribution'].items():
                 if k in ["1.0", "1.3", "1.7", "2.0", "2.3", "2.7", "3.0", "3.3", "3.7", "4.0", "4.3", "4.7", "5.0", "B pass", "B"]:
-                    passed += v
+                    passed += int(v)
             return round(passed / total_students * 100, 2)
         if key == 'Average total':
             grade = 0
             total_students = get_value('Registered', 0, data)
             for k, v in data['Grade distribution'].items():
-                grade += (v * k)
+                grade += (int(v) * float(k))
             return round(grade / total_students * 100, 3)
         if key == 'Average (assessed as passed)':
             grade = 0
             total_students = get_value('Registered', 0, data)
             for k, v in data['Grade distribution'].items():
                 if k in ["1.0", "1.3", "1.7", "2.0", "2.3", "2.7", "3.0", "3.3", "3.7", "4.0", "4.3", "4.7", "5.0", "B pass", "B"]:
-                    grade += (v * k)
+                    grade += (int(v) * float(k))
             return round(grade / total_students * 100, 3)
         return value
 
