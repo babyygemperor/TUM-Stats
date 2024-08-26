@@ -180,14 +180,12 @@ def json_to_html(json_data, query):
         html_content += '</div>'
         return html_content
 
-    keys = ['Date', 'Module Number', 'Name', 'Registered',
-             'Attempt made', 'Not present', 'Withdrawal with approved reasons',
-             'Not valid/cheating', 'Rejection', 'Percent. of exams assessed as failed',
-             'Average total', 'Average (assessed as passed)', 'Grade distribution']
+    keys = ['Registered', 'Attempt made', 'Not present', 'Not valid/cheating', 'Rejection',
+            'Percent. of exams passed', 'Average total', 'Average (assessed as passed)']
 
     for key in keys:
         if key not in json_data:
-            json_data[key] = None
+            json_data[key] = "-"
 
     return render_html(json_data)
 
