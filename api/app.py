@@ -82,14 +82,14 @@ def json_to_html(json_data, query):
                     grade += (int(v) * float(k))
                 except ValueError as e:
                     print(e)
-            return round(grade / total_students * 100, 3)
+            return round(grade / total_students, 3)
         if key == 'Average (assessed as passed)':
             grade = 0
             total_students = get_value('Registered', 0, data)
             for k, v in data['Grade distribution'].items():
                 if k in ["1.0", "1.3", "1.7", "2.0", "2.3", "2.7", "3.0", "3.3", "3.7", "4.0", "4.3", "4.7", "5.0"]:
                     grade += (int(v) * float(k))
-            return round(grade / total_students * 100, 3)
+            return round(grade / total_students, 3)
         return value
 
     def render_html(data, depth=0):
