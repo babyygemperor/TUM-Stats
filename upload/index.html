@@ -91,6 +91,30 @@
             color: black; /* Black text inside input fields */
             margin: 5px 0;
         }
+        /* Custom styles for send button states */
+        .send-button-processing {
+            background-color: #FFC107; /* Amber background */
+            animation: pulse 2s infinite; /* Animation effect */
+        }
+        .send-button-success {
+            background-color: #4CAF50; /* Green background */
+            cursor: default;
+        }
+        .send-button-error {
+            background-color: #F44336; /* Red background */
+        }
+        /* Simple animation */
+        @keyframes pulse {
+            0% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+            100% {
+                opacity: 1;
+            }
+        }
     </style>
     <script>
         $(document).ready(function(){
@@ -102,6 +126,7 @@
                 $('#html-output').empty().hide();
                 $('#missing-fields').empty().hide();
                 $('#send-button').hide();
+                $('#send-button').removeClass('send-button-processing send-button-success send-button-error');
                 $('#duplicate-message').empty().hide();
                 $('#Note2').hide();
             }
@@ -184,7 +209,23 @@
                 }
             }
 
+            function updateButtonState(state) {
+                $('#send-button').removeClass('send-button-processing send-button-success send-button-error');
+                switch(state) {
+                    case 'processing':
+                        $('#send-button').addClass('send-button-processing').val('Sending...');
+                        break;
+                    case 'success':
+                        $('#send-button').addClass('send-button-success').val('Done').prop('disabled', true);
+                        break;
+                    case 'error':
+                        $('#send-button').addClass('send-button-error').val('Retry');
+                        break;
+                }
+            }
+
             function sendStats() {
+                updateButtonState('processing');
                 const allData = JSON.parse($('#json-output').text());
                 ['Date', 'Name'].forEach(function(field) {
                     const inputValue = $('#input-' + field).val();
@@ -204,9 +245,11 @@
                         data: allData
                     }),
                     success: function() {
+                        updateButtonState('success');
                         alert('Data sent successfully!');
                     },
                     error: function(data) {
+                        updateButtonState('error');
                         alert(data.responseJSON['error']);
                     }
                 });
@@ -234,7 +277,7 @@
                             query: allData['Name'].split(" ")[0] + " " + allData['Date']
                         }),
                         success: function (data) {
-                            if (allData['Date'] == data['hits'][0]['Date']) {
+                            if (data['hits'].length > 0 && allData['Date'] === data['hits'][0]['Date']) {
                                 var duplicateUrl = "https://stats.aamin.dev/?query=" + data['hits'][0]['Module Number'] + "%20" + data['hits'][0]['Date'];
                                 $('#duplicate-warning').show();
                                 $('#send-button').val('Send Anyway').show();
