@@ -115,23 +115,28 @@
                 opacity: 1;
             }
         }
+        .error-message {
+            color: #F44336; /* Red color for error messages */
+            margin-top: 10px;
+        }
     </style>
     <script>
         $(document).ready(function(){
             var base64ImageData = '';
 
             function displayImage(imageData) {
+                resetUI();
                 $('#image-preview').attr('src', imageData).show();
                 $('#json-output').empty();
                 $('#html-output').empty().hide();
                 $('#missing-fields').empty().hide();
                 $('#send-button').hide();
-                $('#send-button').removeClass('send-button-processing send-button-success send-button-error');
                 $('#duplicate-message').empty().hide();
                 $('#Note2').hide();
             }
 
             function uploadImage() {
+                resetUI();
                 $('#html-output').hide();
                 $('#json-output').hide();
                 $('#loading-animation').show();
@@ -157,8 +162,14 @@
                     error: function() {
                         $('#loading-animation').hide();
                         $('#html-output').text("An error occurred. Try again!").show();
+                        updateButtonState('error');
                     }
                 });
+            }
+
+            function resetUI() {
+                $('.error-message').remove();
+                $('#send-button').removeClass('send-button-processing send-button-success send-button-error').prop('disabled', false).val('Send').show();
             }
 
             function checkMissingFields(data) {
@@ -210,7 +221,7 @@
             }
 
             function updateButtonState(state) {
-                $('#send-button').removeClass('send-button-processing send-button-success send-button-error');
+                $('#send-button').removeClass('send-button-processing send-button-success send-button-error').prop('disabled', false);
                 switch(state) {
                     case 'processing':
                         $('#send-button').addClass('send-button-processing').val('Sending...');
@@ -222,6 +233,13 @@
                         $('#send-button').addClass('send-button-error').val('Retry');
                         break;
                 }
+            }
+
+            function displayErrorMessage(message) {
+                $('<div/>', {
+                    class: 'error-message',
+                    text: message
+                }).insertAfter('#send-button');
             }
 
             function sendStats() {
@@ -246,17 +264,16 @@
                     }),
                     success: function() {
                         updateButtonState('success');
-                        alert('Data sent successfully!');
                     },
                     error: function(data) {
                         updateButtonState('error');
-                        alert(data.responseJSON['error']);
+                        displayErrorMessage(data.responseJSON['error'] || 'Failed to send data. Please try again.');
                     }
                 });
             }
 
             send_data = function () {
-                if ($('#send-button').val() == 'Send Anyway') {
+                if ($('#send-button').val() === 'Send Anyway') {
                     sendStats();
                 } else {
                     var allData = JSON.parse($('#json-output').text());
@@ -324,7 +341,7 @@
                 if (base64ImageData) {
                     uploadImage();
                 } else {
-                    alert("Please upload or paste an image first.");
+                    displayErrorMessage("Please upload or paste an image first.");
                 }
             });
 
