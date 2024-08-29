@@ -47,7 +47,10 @@ def json_to_html(json_data):
         if key == 'Attempt made':
             return_value = 0
             for k, v in data['Grade distribution'].items():
-                if k in ["1.0", "1.3", "1.7", "2.0", "2.3", "2.7", "3.0", "3.3", "3.7", "4.0", "4.3", "4.7", "5.0", "B pass", "B", "N fail", "N"]:
+                if k in ["1.0", "1.1", "1.2", "1.3", "1.4", "1.5", "1.6", "1.7", "1.8", "1.9",
+                         "2.0", "2.1", "2.2", "2.3", "2.4", "2.5", "2.6", "2.7", "2.8", "2.9",
+                         "3.0", "3.1", "3.2", "3.3", "3.4", "3.5", "3.6", "3.7", "3.8", "3.9",
+                         "4.0", "4.3", "4.7", "5.0", "B pass", "B", "N fail", "N"]:
                     return_value += int(v)
             return return_value
         if key == 'Not present':
@@ -73,7 +76,10 @@ def json_to_html(json_data):
             passed = 0
             total_students = get_value('Registered', 0, data)
             for k, v in data['Grade distribution'].items():
-                if k in ["1.0", "1.3", "1.7", "2.0", "2.3", "2.7", "3.0", "3.3", "3.7", "4.0", "B pass", "B"]:
+                if k in ["1.0", "1.1", "1.2", "1.3", "1.4", "1.5", "1.6", "1.7", "1.8", "1.9",
+                         "2.0", "2.1", "2.2", "2.3", "2.4", "2.5", "2.6", "2.7", "2.8", "2.9",
+                         "3.0", "3.1", "3.2", "3.3", "3.4", "3.5", "3.6", "3.7", "3.8", "3.9",
+                         "4.0", "B pass", "B"]:
                     passed += int(v)
             return f"{str(round((1.0 - (passed / total_students)) * 100, 2))}%"
         if key == 'Average total':
@@ -91,7 +97,10 @@ def json_to_html(json_data):
             grade = 0
             total_students = 0.0
             for k, v in data['Grade distribution'].items():
-                if k in ["1.0", "1.3", "1.7", "2.0", "2.3", "2.7", "3.0", "3.3", "3.7", "4.0"]:
+                if k in ["1.0", "1.1", "1.2", "1.3", "1.4", "1.5", "1.6", "1.7", "1.8", "1.9",
+                         "2.0", "2.1", "2.2", "2.3", "2.4", "2.5", "2.6", "2.7", "2.8", "2.9",
+                         "3.0", "3.1", "3.2", "3.3", "3.4", "3.5", "3.6", "3.7", "3.8", "3.9",
+                         "4.0"]:
                     grade += (int(v) * float(k))
                     total_students += float(v)
             if total_students == 0.0:
