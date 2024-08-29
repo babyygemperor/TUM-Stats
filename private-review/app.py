@@ -37,7 +37,7 @@ def load_data():
     unprocessed_items = [item for item in original_json_data if item['timestamp'] not in processed_timestamps]
 
 
-def json_to_html(json_data, query):
+def json_to_html(json_data):
     def get_value(key, value, data):
         if key == 'Registered':
             return_value = 0
