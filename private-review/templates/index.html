@@ -178,6 +178,45 @@
                 .replace(/'/g, "&#039;");
         }
 
+        function calculateValues(key, data) {
+            const distribution = data['Grade distribution'] || {};
+            let total = Object.values(distribution).reduce((sum, count) => sum + parseInt(count, 10), 0);
+            let passingGrades = ["1.0", "1.3", "1.7", "2.0", "2.3", "2.7", "3.0", "3.3", "3.7", "4.0", "4.3", "4.7", "5.0", "B pass", "B"];
+            let notPresentGrades = ["5.0X", "5.0 X", "5.0 X Nicht erschienen"];
+            let rejectionGrades = ["5.0Z", "5.0 Z", "5.0Z Zurückweisung"];
+            let cheatingGrades = ["5.0U", "5.0 U", "5.0 Ungültig", "5.0U Täuschung", "5.0 U Täuschung"];
+
+            switch (key) {
+                case 'Registered':
+                    return total;
+                case 'Attempt made':
+                    return Object.entries(distribution).reduce((sum, [grade, count]) => passingGrades.includes(grade) ? sum + parseInt(count, 10) : sum, 0);
+                case 'Not present':
+                    return Object.entries(distribution).reduce((sum, [grade, count]) => notPresentGrades.includes(grade) ? sum + parseInt(count, 10) : sum, 0);
+                case 'Rejection':
+                    return Object.entries(distribution).reduce((sum, [grade, count]) => rejectionGrades.includes(grade) ? sum + parseInt(count, 10) : sum, 0);
+                case 'Not valid/cheating':
+                    return Object.entries(distribution).reduce((sum, [grade, count]) => cheatingGrades.includes(grade) ? sum + parseInt(count, 10) : sum, 0);
+                case 'Percent. of exams failed':
+                    let passed = Object.entries(distribution).reduce((sum, [grade, count]) => passingGrades.includes(grade) ? sum + parseInt(count, 10) : sum, 0);
+                    return ((1.0 - (passed / total)) * 100).toFixed(2) + '%';
+                case 'Average total':
+                    let totalGrades = Object.entries(distribution).reduce((sum, [grade, count]) => sum + (parseFloat(grade) * parseInt(count, 10)), 0);
+                    return (totalGrades / total).toFixed(3);
+                case 'Average (assessed as passed)':
+                    let assessed = Object.entries(distribution).reduce((acc, [grade, count]) => {
+                        if (passingGrades.includes(grade)) {
+                            acc.total += parseFloat(grade) * parseInt(count, 10);
+                            acc.count += parseInt(count, 10);
+                        }
+                        return acc;
+                    }, {total: 0, count: 0});
+                    return (assessed.count === 0) ? 0 : (assessed.total / assessed.count).toFixed(3);
+                default:
+                    return data[key] || '-';
+            }
+        }
+
         function renderDistribution(distribution) {
             const requiredGrades = ["1.0", "1.3", "1.7", "2.0", "2.3", "2.7", "3.0", "3.3", "3.7", "4.0", "4.3", "4.7", "5.0"];
             requiredGrades.forEach(grade => {
@@ -253,16 +292,18 @@
                 }
                 for (const [key, value] of Object.entries(data)) {
                     if (value instanceof Object && key === "Grade distribution") {
-                        htmlContent += `<tr><td colspan='2'>${escapeHtml(key)}: Percent % / grade\nK. = Number of candidates</td></tr>\n`;
-                        distributionHtml = renderDistribution(value);
-                    } else if (value instanceof Object) {
-                        continue;
+                        continue; // Skip direct rendering of distribution; handle separately
+                    } else if (typeof value === 'object' && value !== null) {
+                        continue; // Skip nested objects for simplicity
                     } else {
                         const labelId = `ST${Math.abs(String(key).hashCode()) % 1000000000000}`;
+                        let displayValue = calculateValues(key, data);
                         htmlContent += `<tr><td><label for='${labelId}'>${escapeHtml(key)}:</label></td>`;
-                        htmlContent += `<td id='${labelId}'>${value}</td></tr>\n`;
+                        htmlContent += `<td id='${labelId}'>${displayValue}</td></tr>\n`;
                     }
                 }
+                htmlContent += `<tr><td colspan='2'>${escapeHtml('Grade distribution')}: Percent % / grade\nK. = Number of candidates</td></tr>\n`;
+                distributionHtml = renderDistribution(data["Grade distribution"]);
                 if (depth === 0) {
                     htmlContent += "</tbody>\n</table>\n";
                 }
