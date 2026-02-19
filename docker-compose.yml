@@ -6,9 +6,17 @@ services:
     ports:
       - "6655:6655"
     restart: unless-stopped
+    depends_on:
+      meilisearch-init:
+        condition: service_completed_successfully
   meilisearch:
     image: getmeili/meilisearch
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:7700/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
   stats-upload:
     build: ./upload
     ports:
@@ -23,3 +31,20 @@ services:
     volumes:
       - ./stats:/stats
     restart: unless-stopped
+  meilisearch-init:
+    image: curlimages/curl:latest
+    depends_on:
+      meilisearch:
+        condition: service_healthy
+    volumes:
+      - ./stats:/stats:ro
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        curl -X POST 'http://meilisearch:7700/indexes/exams/documents' \
+          -H 'Content-Type: application/json' \
+          --data-binary @/stats/master_with_id.json &&
+        curl -X POST 'http://meilisearch:7700/indexes/exams/documents' \
+          -H 'Content-Type: application/json' \
+          --data-binary @/stats/new_data_only.json
+    restart: "no"
