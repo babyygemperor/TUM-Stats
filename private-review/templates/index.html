@@ -72,7 +72,7 @@
                 <div id="html-{{ item.timestamp }}">
                     {{ json_to_html(item.data) | safe }}
                 </div>
-                <a href="https://stats.aamin.dev/?query={{ item.data['Module Number'] }} {{ item.data['Date'] }}" id="link-{{ item.timestamp }}">https://stats.aamin.dev/?query={{ item.data['Module Number'] }} {{ item.data['Date'] }}</a>
+                <a href="#" id="link-{{ item.timestamp }}" data-module="{{ item.data['Module Number'] }}" data-date="{{ item.data['Date'] }}"></a>
                 <div id="duplicate-warning-{{ item.timestamp }}" style="display:none;">
                     <p id="duplicate-message-{{ item.timestamp }}"></p>
                 </div>
@@ -83,10 +83,22 @@
 </div>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 <script>
+    const IS_DEV = ['localhost', '127.0.0.1', ''].includes(window.location.hostname);
+    const SITE_URL = IS_DEV ? 'http://localhost' : 'https://stats.aamin.dev';
+    const API_URL = IS_DEV ? 'http://localhost:6655' : 'https://stats-api.aamin.dev';
+
     document.addEventListener('DOMContentLoaded', function () {
         const textAreas = document.querySelectorAll('textarea');
         textAreas.forEach(textArea => {
             prettyPrintJson(textArea);
+        });
+
+        // Set dynamic URLs for item links
+        document.querySelectorAll('a[id^="link-"]').forEach(link => {
+            const mod = link.dataset.module;
+            const date = link.dataset.date;
+            link.href = SITE_URL + '/?query=' + mod + '%20' + date;
+            link.textContent = SITE_URL + '/?query=' + mod + ' ' + date;
         });
 
         // Loop through each item to check for duplicates
@@ -100,14 +112,14 @@
     function checkDuplicate(itemData, timestamp) {
         $.ajax({
             method: 'POST',
-            url: 'https://stats-api.aamin.dev/check',
+            url: API_URL + '/check',
             contentType: 'application/json',
             data: JSON.stringify({
                 query: itemData['Name'].split(" ")[0] + " " + itemData['Date']
             }),
             success: function (data) {
                 if (itemData['Date'] == data['hits'][0]['Date']) {
-                    var duplicateUrl = "https://stats.aamin.dev/?query=" + data['hits'][0]['Module Number'] + "%20" + data['hits'][0]['Date'];
+                    var duplicateUrl = SITE_URL + "/?query=" + data['hits'][0]['Module Number'] + "%20" + data['hits'][0]['Date'];
                     var warningElement = document.getElementById('duplicate-warning-' + timestamp);
                     var messageElement = document.getElementById('duplicate-message-' + timestamp);
                     warningElement.style.display = 'block';
@@ -136,8 +148,8 @@
             var jsonData = JSON.parse(jsonDataElement.value);
             var htmlContent = jsonToHtml(jsonData); // Assume jsonToHtml is available or simulate it
             document.getElementById('html-' + timestamp).innerHTML = htmlContent;
-            linkElement.href = 'https://stats.aamin.dev/?query=' + jsonData['Module Number'] + '%20' + jsonData['Date']
-            linkElement.text = 'https://stats.aamin.dev/?query=' + jsonData['Module Number'] + ' ' + jsonData['Date']
+            linkElement.href = SITE_URL + '/?query=' + jsonData['Module Number'] + '%20' + jsonData['Date']
+            linkElement.text = SITE_URL + '/?query=' + jsonData['Module Number'] + ' ' + jsonData['Date']
         } catch (e) {
             console.error('Invalid JSON:', e);
         }

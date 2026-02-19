@@ -121,6 +121,10 @@
         }
     </style>
     <script>
+        const IS_DEV = ['localhost', '127.0.0.1', ''].includes(window.location.hostname);
+        const SITE_URL = IS_DEV ? 'http://localhost' : 'https://stats.aamin.dev';
+        const API_URL = IS_DEV ? 'http://localhost:6655' : 'https://stats-api.aamin.dev';
+
         $(document).ready(function(){
             var base64ImageData = '';
 
@@ -147,7 +151,7 @@
 
                 $.ajax({
                     method: 'POST',
-                    url: 'https://stats-api.aamin.dev/upload',
+                    url: API_URL + '/upload',
                     data: {
                         image: base64ImageData
                     },
@@ -256,7 +260,7 @@
 
                 $.ajax({
                     method: 'POST',
-                    url: 'https://stats-api.aamin.dev/send',
+                    url: API_URL + '/send',
                     contentType: 'application/json',
                     data: JSON.stringify({
                         image: base64ImageData,
@@ -288,14 +292,14 @@
 
                     $.ajax({
                         method: 'POST',
-                        url: 'https://stats-api.aamin.dev/check',
+                        url: API_URL + '/check',
                         contentType: 'application/json',
                         data: JSON.stringify({
                             query: allData['Name'].split(" ")[0] + " " + allData['Date']
                         }),
                         success: function (data) {
                             if (data['hits'].length > 0 && allData['Date'] === data['hits'][0]['Date']) {
-                                var duplicateUrl = "https://stats.aamin.dev/?query=" + data['hits'][0]['Module Number'] + "%20" + data['hits'][0]['Date'];
+                                var duplicateUrl = SITE_URL + "/?query=" + data['hits'][0]['Module Number'] + "%20" + data['hits'][0]['Date'];
                                 $('#duplicate-warning').show();
                                 $('#send-button').val('Send Anyway').show();
                                 $('#duplicate-message').html(`Looks like this stat already exists in my database. Please check <a href="${duplicateUrl}" target="_blank">this link</a> to confirm. If you believe this is a mistake, you can submit these stats regardless.`).show();

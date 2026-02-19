@@ -2,11 +2,15 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="refresh" content="0; url=https://stats.aamin.dev">
     <title>Redirecting...</title>
+    <script>
+        const IS_DEV = ['localhost', '127.0.0.1', ''].includes(window.location.hostname);
+        const SITE_URL = IS_DEV ? 'http://localhost' : 'https://stats.aamin.dev';
+        window.location.replace(SITE_URL);
+    </script>
 </head>
 <body>
-    <p>If you are not redirected automatically, <a href="https://stats.aamin.dev">click here</a>.</p>
+    <p>If you are not redirected automatically, <a id="fallback-link" href="https://stats.aamin.dev">click here</a>.</p>
+    <script>document.getElementById('fallback-link').href = SITE_URL;</script>
 </body>
 </html>
-
