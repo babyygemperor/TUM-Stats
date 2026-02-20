@@ -124,6 +124,7 @@
         const IS_DEV = ['localhost', '127.0.0.1', ''].includes(window.location.hostname);
         const SITE_URL = IS_DEV ? 'http://localhost' : 'https://stats.aamin.dev';
         const API_URL = IS_DEV ? 'http://localhost:6655' : 'https://stats-api.aamin.dev';
+        const UPLOAD_URL = IS_DEV ? 'http://localhost:8079' : 'https://stats-api.aamin.dev';
 
         $(document).ready(function(){
             var base64ImageData = '';
@@ -151,7 +152,7 @@
 
                 $.ajax({
                     method: 'POST',
-                    url: API_URL + '/upload',
+                    url: UPLOAD_URL + '/upload',
                     data: {
                         image: base64ImageData
                     },
@@ -260,7 +261,7 @@
 
                 $.ajax({
                     method: 'POST',
-                    url: API_URL + '/send',
+                    url: UPLOAD_URL + '/send',
                     contentType: 'application/json',
                     data: JSON.stringify({
                         image: base64ImageData,
