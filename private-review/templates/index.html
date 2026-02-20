@@ -297,6 +297,33 @@
                 gap: 8px;
             }
         }
+        .bar-label {
+            color: black;
+            text-align: center;
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            white-space: nowrap;
+            width: max-content;
+            font-size: 0.65em;
+            margin-bottom: 0.3em;
+        }
+
+        .grade-chart > div:nth-child(even) .bar-label {
+            margin-bottom: 2.5em;
+        }
+
+        .grade-chart {
+            margin: 3em 0 !important;
+            padding: 0 !important;
+            width: 100% !important;
+        }
+
+        .grade-chart > div {
+            flex: 1 !important;
+            margin: 0 !important;
+        }
     </style>
 </head>
 <body>
@@ -380,6 +407,14 @@
                 } catch(e) {}
             }
         });
+
+        adjustBarLabels();
+    });
+
+    let resizeTimeout;
+    window.addEventListener('resize', () => {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(() => adjustBarLabels(), 200);
     });
 
     function checkDuplicate(itemData, timestamp) {
@@ -420,7 +455,9 @@
         try {
             var jsonData = JSON.parse(jsonDataElement.value);
             var htmlContent = jsonToHtml(jsonData);
-            document.getElementById('html-' + timestamp).innerHTML = htmlContent;
+            var container = document.getElementById('html-' + timestamp);
+            container.innerHTML = htmlContent;
+            adjustBarLabels(container);
             linkElement.href = SITE_URL + '/?query=' + jsonData['Module Number'] + '%20' + jsonData['Date'];
             linkElement.textContent = 'View on site: ' + jsonData['Module Number'] + ' ' + jsonData['Date'];
         } catch (e) {
@@ -525,7 +562,7 @@
 
             let totalCandidates = Object.values(distribution).reduce((sum, count) => sum + parseInt(count), 0);
 
-            let htmlContent = '<div style="display: flex; flex-direction: row; align-items: flex-end; position: relative; margin-top:1em; margin-bottom:3em; padding-right:3em; margin-right:2em; margin-left:2em; width: auto; height: 24em; z-index: 100;">' +
+            let htmlContent = '<div class="grade-chart" style="display: flex; flex-direction: row; align-items: flex-end; position: relative; margin-top:3em; margin-bottom:3em; width: 100%; height: 24em; z-index: 100;">' +
                 '<div style="position: absolute; left: 0; height: 23em; width: 1px; background-color: black; bottom: 20px;"></div>' +
                 '<div style="position: absolute; width: 100%; height: 1px; background-color: black; bottom: 20px; left: 0;"></div>';
 
@@ -551,7 +588,6 @@
                 "Unknown": "rgb(100,100,100)"
             };
 
-            let first = true;
             const sortedKeys = Object.keys(distribution).sort();
 
             sortedKeys.forEach(grade => {
@@ -559,17 +595,12 @@
                 let percentage = totalCandidates === 0 ? 0 : (parseInt(count) / totalCandidates) * 100;
                 let barHeight = totalCandidates === 0 ? 0 : `${(parseInt(count) / Math.max(...Object.values(distribution).map(x => parseInt(x)))) * 20}em`;
                 let colour = gradeColours[grade] || "rgb(100,100,100)";
-                if (first) {
-                    htmlContent += '<div style="width: 20%; margin: 0 0 0 1%; position: relative;">';
-                    first = false;
-                } else {
-                    htmlContent += '<div style="width: 20%; position: relative;">';
-                }
+                htmlContent += '<div style="flex: 1; position: relative;">';
                 htmlContent += `<div style="position: absolute; margin-left: 0; width: 100%; margin-top: 3.0em; height: ${barHeight}; background-color: ${colour}; bottom: 21px; z-index: 101">`;
                 if (percentage > 0) {
-                    htmlContent += `<div style="color: black; text-align: center; position: absolute; bottom: 100%; width: 100%; margin-bottom: 1.0em">${percentage.toFixed(2)}%<br>${count} K.</div></div>`;
+                    htmlContent += `<div class="bar-label">${percentage.toFixed(2)}%<br>${count} K.</div></div>`;
                 } else {
-                    htmlContent += `<div style="color: black; text-align: center; position: absolute; bottom: 100%; width: 100%; margin-bottom: 2.0em"><br>${count} K.</div></div>`;
+                    htmlContent += `<div class="bar-label"><br>${count} K.</div></div>`;
                 }
                 htmlContent += `<div style="position: absolute; width: 100%; text-align: center; margin-top: -1em;">${escapeHtml(grade)}</div>`;
                 htmlContent += '</div>';
@@ -611,6 +642,36 @@
         }
 
         return renderHtml(jsonData);
+    }
+
+    function adjustBarLabels(container) {
+        const charts = (container || document).querySelectorAll('.grade-chart');
+        charts.forEach(chart => {
+            const labels = chart.querySelectorAll('.bar-label');
+            if (labels.length === 0) return;
+
+            const barContainers = Array.from(chart.children).filter(
+                el => el.style.position === 'relative'
+            );
+            if (barContainers.length === 0) return;
+            const barWidth = barContainers[0].getBoundingClientRect().width;
+            if (barWidth === 0) return;
+
+            const refSize = 16;
+            labels.forEach(l => l.style.fontSize = refSize + 'px');
+
+            let maxWidth = 0;
+            labels.forEach(l => {
+                const w = l.getBoundingClientRect().width;
+                if (w > maxWidth) maxWidth = w;
+            });
+
+            if (maxWidth === 0) return;
+
+            const optimalSize = (barWidth / maxWidth) * refSize;
+            const finalSize = Math.min(Math.max(Math.floor(optimalSize), 8), 14);
+            labels.forEach(l => l.style.fontSize = finalSize + 'px');
+        });
     }
 
     String.prototype.hashCode = function () {

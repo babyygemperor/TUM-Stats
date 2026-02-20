@@ -97,17 +97,16 @@ def _get_value(key, value, data):
     return value
 
 
-def _render_distribution(distribution, bar_width='5%'):
+def _render_distribution(distribution):
     for grade in REQUIRED_GRADES:
         if grade not in distribution:
             distribution[grade] = "0"
 
     total_candidates = sum(int(count) for count in distribution.values())
-    html_content = '<div style="display: flex; flex-direction: row; align-items: flex-end; position: relative; margin-top:1em; margin-bottom:3em; padding-right:3em; margin-right:2em; margin-left:2em; width: auto; height: 24em; z-index: 100;">'
+    html_content = '<div class="grade-chart" style="display: flex; flex-direction: row; align-items: flex-end; position: relative; margin-top:3em; margin-bottom:3em; width: 100%; height: 24em; z-index: 100;">'
     html_content += '<div style="position: absolute; left: 0; height: 23em; width: 1px; background-color: black; bottom: 20px;"></div>'
     html_content += '<div style="position: absolute; width: 100%; height: 1px; background-color: black; bottom: 20px; left: 0;"></div>'
 
-    first = True
     distribution = dict(sorted(distribution.items()))
 
     for grade, count in distribution.items():
@@ -118,24 +117,20 @@ def _render_distribution(distribution, bar_width='5%'):
             percentage = 0
             bar_height = 0
         colour = GRADE_COLOURS.get(grade, "rgb(100,100,100)")
-        if first:
-            html_content += f'<div style="width: {bar_width}; margin: 0 0 0 1%; position: relative;">'
-            first = False
-        else:
-            html_content += f'<div style="width: {bar_width}; position: relative;">'
+        html_content += f'<div style="flex: 1; position: relative;">'
 
         html_content += f'<div style="position: absolute; margin-left: 0; width: 100%; margin-top: 3.0em; height: {bar_height}; background-color: {colour}; bottom: 21px; z-index: 101">'
         if percentage > 0:
-            html_content += f'<div style="color: black; text-align: center; position: absolute; bottom: 100%; width: 100%; margin-bottom: 1.0em">{percentage:.2f}%<br>{count} K.</div></div>'
+            html_content += f'<div class="bar-label">{percentage:.2f}%<br>{count} K.</div></div>'
         else:
-            html_content += f'<div style="color: black; text-align: center; position: absolute; bottom: 100%; width: 100%; margin-bottom: 2.0em"><br>{count} K.</div></div>'
+            html_content += f'<div class="bar-label"><br>{count} K.</div></div>'
         html_content += f'<div style="position: absolute; width: 100%; text-align: center; margin-top: -1em;">{escape(str(grade))}</div>'
         html_content += '</div>'
     html_content += '</div>'
     return html_content
 
 
-def json_to_html(json_data, query=None, bar_width='5%'):
+def json_to_html(json_data, query=None):
     for key in SUMMARY_KEYS:
         if key not in json_data:
             json_data[key] = "-"
@@ -160,7 +155,7 @@ def json_to_html(json_data, query=None, bar_width='5%'):
         html_content += f"<td id='{label_id}'>{_get_value(key, display_value, json_data)}</td></tr>\n"
 
     html_content += f"<tr><td colspan='2'>{escape('Grade distribution')}: Percent % / grade\nK. = Number of candidates</td></tr>\n"
-    distribution_html = _render_distribution(json_data["Grade distribution"], bar_width)
+    distribution_html = _render_distribution(json_data["Grade distribution"])
     html_content += "</tbody>\n</table>\n"
     html_content += distribution_html
 

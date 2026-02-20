@@ -1,6 +1,5 @@
 import os.path
 import json
-from functools import partial
 
 import requests
 from flask import Flask, render_template, request, jsonify
@@ -78,7 +77,7 @@ def tojson_pretty(value):
 def index():
     load_data()
     return render_template('index.html', items=unprocessed_items, enumerate=enumerate,
-                           json_to_html=partial(json_to_html, bar_width='20%'),
+                           json_to_html=json_to_html,
                            tojson_pretty=tojson_pretty)
 
 
