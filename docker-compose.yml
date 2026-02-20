@@ -5,6 +5,8 @@ services:
     build: ./api
     ports:
       - "6655:6655"
+    volumes:
+      - ./shared:/app/shared:ro
     restart: unless-stopped
     depends_on:
       meilisearch-init:
@@ -23,6 +25,7 @@ services:
       - "8079:8079"
     volumes:
       - ./stats:/stats
+      - ./shared:/app/shared:ro
     env_file:
       - .env
     restart: unless-stopped
@@ -32,6 +35,7 @@ services:
       - "9981:9981"
     volumes:
       - ./stats:/stats
+      - ./shared:/app/shared:ro
     restart: unless-stopped
   meilisearch-init:
     image: curlimages/curl:latest
