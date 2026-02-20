@@ -23,6 +23,8 @@ services:
       - "8079:8079"
     volumes:
       - ./stats:/stats
+    env_file:
+      - .env
     restart: unless-stopped
   stats-review:
     build: ./private-review

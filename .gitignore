@@ -1,4 +1,6 @@
-upload/app.py
+upload/ocr.py
+upload/email_service.py
+.env
 stats/
 private-review/data.json
 private-review/new_data_only.json
