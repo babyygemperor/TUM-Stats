@@ -3,84 +3,351 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JSON Data Viewer</title>
+    <title>Review Statistics</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+
         body {
-            background-color: #f4f4f9;
-            font-family: 'Arial', sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            margin: 0;
+            padding: 24px 16px;
+            background-color: #f8f9fa;
+            color: #1a1a1a;
+            -webkit-font-smoothing: antialiased;
         }
 
-        .container {
+        .page-header {
+            max-width: 1400px;
+            margin: 0 auto 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .page-header h1 {
+            font-size: 22px;
+            font-weight: 600;
+            color: #111;
+            margin: 0;
+            letter-spacing: -0.3px;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .badge-pending {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+
+        .badge-done {
+            background-color: #dcfce7;
+            color: #166534;
+        }
+
+        .empty-state {
+            max-width: 1400px;
+            margin: 0 auto;
+            text-align: center;
+            padding: 80px 20px;
+            color: #6b7280;
+        }
+
+        .empty-state .icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        .empty-state p {
+            font-size: 16px;
+            margin: 0;
+        }
+
+        .review-item {
+            max-width: 1400px;
+            margin: 0 auto 32px;
             background: white;
-            padding: 2rem;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            overflow: hidden;
         }
 
-        textarea {
-            border: 2px solid #ccc;
-            border-radius: 4px;
-            padding: 10px;
-            margin-top: 20px;
+        .review-item-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px;
+            border-bottom: 1px solid #e5e7eb;
+            background: #fafafa;
         }
 
-        button {
-            margin-right: 10px;
+        .review-item-header .item-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #374151;
         }
 
-        img {
-            border-radius: 4px;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        .review-item-header .item-counter {
+            font-size: 12px;
+            color: #9ca3af;
         }
 
-        table {
+        .review-item-body {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            min-height: 0;
+        }
+
+        .review-left {
+            padding: 20px;
+            border-right: 1px solid #e5e7eb;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .review-right {
+            padding: 20px;
+            overflow-x: auto;
+        }
+
+        .review-left img {
             width: 100%;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
         }
 
-        table, th, td {
+        .review-left textarea {
+            width: 100%;
+            min-height: 240px;
+            padding: 12px;
+            font-family: 'SF Mono', 'Fira Code', 'Fira Mono', Menlo, Consolas, monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            background: #f9fafb;
+            color: #1a1a1a;
+            resize: vertical;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .review-left textarea:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+            background: white;
+        }
+
+        .actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+            flex: 1;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .btn-edit {
+            background-color: #f3f4f6;
+            color: #374151;
+        }
+
+        .btn-edit:hover {
+            background-color: #e5e7eb;
+        }
+
+        .btn-accept {
+            background-color: #16a34a;
+            color: white;
+        }
+
+        .btn-accept:hover {
+            background-color: #15803d;
+        }
+
+        .btn-accept.loading {
+            opacity: 0.7;
+            cursor: wait;
+        }
+
+        .review-right h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #111;
+            margin: 0 0 12px;
+        }
+
+        .review-right table {
+            width: 100%;
+            font-size: 14px;
             border-collapse: collapse;
         }
 
-        th, td {
-            padding: 8px;
-            text-align: left;
+        .review-right td {
+            padding: 4px 8px 4px 0;
+            vertical-align: top;
         }
 
-        th {
-            background-color: #f8f8f8;
+        .review-right td:first-child {
+            color: #6b7280;
+            white-space: nowrap;
+        }
+
+        .review-right td:last-child {
+            font-weight: 500;
+        }
+
+        .review-right label {
+            color: #6b7280;
+            font-weight: 400;
+        }
+
+        .item-link {
+            display: inline-block;
+            margin-top: 12px;
+            font-size: 13px;
+            color: #2563eb;
+            text-decoration: none;
+            word-break: break-all;
+        }
+
+        .item-link:hover {
+            text-decoration: underline;
+        }
+
+        .duplicate-warning {
+            display: none;
+            margin-top: 12px;
+            padding: 10px 14px;
+            background-color: #fef2f2;
+            border-left: 3px solid #ef4444;
+            border-radius: 8px;
+            font-size: 13px;
+            color: #991b1b;
+            line-height: 1.5;
+        }
+
+        .duplicate-warning a {
+            color: #2563eb;
+            font-weight: 500;
+        }
+
+        /* Keyboard shortcut hint */
+        .shortcut-hint {
+            max-width: 1400px;
+            margin: 0 auto 16px;
+            font-size: 12px;
+            color: #9ca3af;
+        }
+
+        kbd {
+            display: inline-block;
+            padding: 2px 6px;
+            font-family: inherit;
+            font-size: 11px;
+            background: #f3f4f6;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            color: #374151;
+        }
+
+        @media (max-width: 900px) {
+            .review-item-body {
+                grid-template-columns: 1fr;
+            }
+
+            .review-left {
+                border-right: none;
+                border-bottom: 1px solid #e5e7eb;
+            }
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 16px 12px;
+            }
+
+            .page-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
         }
     </style>
 </head>
 <body>
-<div class="container mt-5" style="margin-left: 2em; margin-right: 2em">
-    <p>Total {{ items | length }} new statistics left</p>
-    {% for item in items %}
-        <div class="row mb-3" id="item-{{ item.timestamp }}" style="display: flex; margin-bottom: 2em">
-            <div class="col-md-6" style="width: 40%; margin: 1em">
-                <img src="{{ item.image }}" alt="Data Image" class="img-fluid" style="max-width: 100%;">
-                <div class="col-md-6">
-                    <textarea id="json-data-{{ item.timestamp }}" style="width:100%; height:200px; font-size: 24px">
-                        {{ item.data | tojson }}
-                    </textarea>
-                    <br>
-                    <button onclick="editData('{{ item.timestamp }}')" class="btn btn-primary">Edit</button>
-                    <button onclick="acceptData('{{ item.timestamp }}')" class="btn btn-success">Accept</button>
-                </div>
-            </div>
-            <hr style="0 auto"/>
-            <div class="col-md-6" style="width: 50%; margin: 1em">
-                <div id="html-{{ item.timestamp }}">
-                    {{ json_to_html(item.data) | safe }}
-                </div>
-                <a href="#" id="link-{{ item.timestamp }}" data-module="{{ item.data['Module Number'] }}" data-date="{{ item.data['Date'] }}"></a>
-                <div id="duplicate-warning-{{ item.timestamp }}" style="display:none;">
-                    <p id="duplicate-message-{{ item.timestamp }}"></p>
-                </div>
+<div class="page-header">
+    <h1>Review Statistics</h1>
+    {% if items | length > 0 %}
+        <span class="badge badge-pending">{{ items | length }} pending</span>
+    {% else %}
+        <span class="badge badge-done">All done</span>
+    {% endif %}
+</div>
+
+{% if items | length == 0 %}
+<div class="empty-state">
+    <div class="icon">&#9989;</div>
+    <p>No statistics to review. All caught up!</p>
+</div>
+{% else %}
+<div class="shortcut-hint">
+    <kbd>Tab</kbd> to navigate between items &middot; Edit JSON then click <strong>Edit</strong> to preview or <strong>Accept</strong> to publish
+</div>
+
+{% for item in items %}
+<div class="review-item" id="item-{{ item.timestamp }}">
+    <div class="review-item-header">
+        <span class="item-title">{{ item.data.get('Name', 'Unnamed') | truncate(60) }}</span>
+        <span class="item-counter">{{ loop.index }} of {{ items | length }}</span>
+    </div>
+    <div class="review-item-body">
+        <div class="review-left">
+            <img src="{{ item.image }}" alt="Screenshot">
+            <textarea id="json-data-{{ item.timestamp }}">{{ item.data | tojson }}</textarea>
+            <div class="actions">
+                <button onclick="editData('{{ item.timestamp }}')" class="btn btn-edit">Edit Preview</button>
+                <button onclick="acceptData('{{ item.timestamp }}')" class="btn btn-accept" id="accept-btn-{{ item.timestamp }}">Accept</button>
             </div>
         </div>
-        <hr>
-    {% endfor %}
+        <div class="review-right">
+            <div id="html-{{ item.timestamp }}">
+                {{ json_to_html(item.data) | safe }}
+            </div>
+            <a href="#" class="item-link" id="link-{{ item.timestamp }}" data-module="{{ item.data['Module Number'] }}" data-date="{{ item.data['Date'] }}"></a>
+            <div class="duplicate-warning" id="duplicate-warning-{{ item.timestamp }}">
+                <p id="duplicate-message-{{ item.timestamp }}" style="margin:0;"></p>
+            </div>
+        </div>
+    </div>
 </div>
+{% endfor %}
+{% endif %}
+
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 <script>
     const IS_DEV = ['localhost', '127.0.0.1', ''].includes(window.location.hostname);
@@ -93,19 +360,25 @@
             prettyPrintJson(textArea);
         });
 
-        // Set dynamic URLs for item links
         document.querySelectorAll('a[id^="link-"]').forEach(link => {
             const mod = link.dataset.module;
             const date = link.dataset.date;
-            link.href = SITE_URL + '/?query=' + mod + '%20' + date;
-            link.textContent = SITE_URL + '/?query=' + mod + ' ' + date;
+            if (mod || date) {
+                link.href = SITE_URL + '/?query=' + mod + '%20' + date;
+                link.textContent = 'View on site: ' + mod + ' ' + date;
+            }
         });
 
-        // Loop through each item to check for duplicates
-        const items = document.querySelectorAll('.row');
+        const items = document.querySelectorAll('.review-item');
         items.forEach(item => {
-            const itemData = JSON.parse(document.getElementById('json-data-' + item.id.substring(5)).value);
-            checkDuplicate(itemData, item.id.substring(5));
+            const ts = item.id.substring(5);
+            const el = document.getElementById('json-data-' + ts);
+            if (el) {
+                try {
+                    const itemData = JSON.parse(el.value);
+                    checkDuplicate(itemData, ts);
+                } catch(e) {}
+            }
         });
     });
 
@@ -118,12 +391,12 @@
                 query: itemData['Name'].split(" ")[0] + " " + itemData['Date']
             }),
             success: function (data) {
-                if (itemData['Date'] == data['hits'][0]['Date']) {
+                if (data['hits'] && data['hits'].length > 0 && itemData['Date'] == data['hits'][0]['Date']) {
                     var duplicateUrl = SITE_URL + "/?query=" + data['hits'][0]['Module Number'] + "%20" + data['hits'][0]['Date'];
                     var warningElement = document.getElementById('duplicate-warning-' + timestamp);
                     var messageElement = document.getElementById('duplicate-message-' + timestamp);
                     warningElement.style.display = 'block';
-                    messageElement.innerHTML = `Looks like this stat already exists in my database. Please check <a href="${duplicateUrl}" target="_blank">this link</a> to confirm.`;
+                    messageElement.innerHTML = `Possible duplicate &mdash; <a href="${duplicateUrl}" target="_blank">check existing entry</a>`;
                 }
             },
             error: function (data) {
@@ -146,10 +419,10 @@
         var linkElement = document.getElementById('link-' + timestamp);
         try {
             var jsonData = JSON.parse(jsonDataElement.value);
-            var htmlContent = jsonToHtml(jsonData); // Assume jsonToHtml is available or simulate it
+            var htmlContent = jsonToHtml(jsonData);
             document.getElementById('html-' + timestamp).innerHTML = htmlContent;
-            linkElement.href = SITE_URL + '/?query=' + jsonData['Module Number'] + '%20' + jsonData['Date']
-            linkElement.text = SITE_URL + '/?query=' + jsonData['Module Number'] + ' ' + jsonData['Date']
+            linkElement.href = SITE_URL + '/?query=' + jsonData['Module Number'] + '%20' + jsonData['Date'];
+            linkElement.textContent = 'View on site: ' + jsonData['Module Number'] + ' ' + jsonData['Date'];
         } catch (e) {
             console.error('Invalid JSON:', e);
         }
@@ -158,8 +431,13 @@
     function acceptData(timestamp) {
         editData(timestamp);
         var jsonDataElement = document.getElementById('json-data-' + timestamp);
+        var acceptBtn = document.getElementById('accept-btn-' + timestamp);
         try {
             var data = JSON.parse(jsonDataElement.value);
+            acceptBtn.textContent = 'Processing...';
+            acceptBtn.classList.add('loading');
+            acceptBtn.disabled = true;
+
             fetch(`/update/${timestamp}`, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
@@ -168,19 +446,27 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        window.location.reload();
+                        acceptBtn.textContent = 'Done';
+                        acceptBtn.style.backgroundColor = '#16a34a';
+                        setTimeout(() => window.location.reload(), 500);
                     } else {
-                        console.log(data.success + "; " + data.message);
+                        acceptBtn.textContent = 'Accept';
+                        acceptBtn.classList.remove('loading');
+                        acceptBtn.disabled = false;
                         alert(data.message);
                     }
                 })
-                .catch(error => console.error('Error:', error));
+                .catch(error => {
+                    acceptBtn.textContent = 'Accept';
+                    acceptBtn.classList.remove('loading');
+                    acceptBtn.disabled = false;
+                    console.error('Error:', error);
+                });
         } catch (e) {
             console.error('Invalid JSON:', e);
         }
     }
 
-    // Simulate jsonToHtml function or adapt as necessary
     function jsonToHtml(jsonData) {
         function escapeHtml(unsafe) {
             return unsafe.replace(/&/g, "&amp;")
@@ -304,9 +590,9 @@
                 }
                 for (const [key, value] of Object.entries(data)) {
                     if (value instanceof Object && key === "Grade distribution") {
-                        continue; // Skip direct rendering of distribution; handle separately
+                        continue;
                     } else if (typeof value === 'object' && value !== null) {
-                        continue; // Skip nested objects for simplicity
+                        continue;
                     } else {
                         const labelId = `ST${Math.abs(String(key).hashCode()) % 1000000000000}`;
                         let displayValue = calculateValues(key, data);
@@ -327,18 +613,15 @@
         return renderHtml(jsonData);
     }
 
-    // Helper function to create a hash code from a string
     String.prototype.hashCode = function () {
         let hash = 0;
         for (let i = 0; i < this.length; i++) {
             const char = this.charCodeAt(i);
             hash = ((hash << 5) - hash) + char;
-            hash |= 0; // Convert to 32bit integer
+            hash |= 0;
         }
         return hash;
     };
-
 </script>
-
 </body>
 </html>
