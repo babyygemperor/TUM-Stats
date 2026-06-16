@@ -239,10 +239,6 @@
             margin: 0 !important;
         }
 
-        #standard .stats {
-            content-visibility: auto;
-            contain-intrinsic-size: auto 500px;
-        }
     </style>
 </head>
 <body>
@@ -14372,61 +14368,45 @@
 
         document.getElementById('old-website-link').href = SITE_URL + '/old';
 
-        let searchTimeout;
-        function searchExams() {
-            clearTimeout(searchTimeout);
-            const input = document.getElementById('searchBox');
-            const searchTerm = input.value;
-            const standardDiv = document.getElementById('standard');
-            const searchSpinner = document.getElementById('searchSpinner');
-            const output = document.getElementById('html-output');
+        const BATCH_SIZE = 20;
+        const standardDiv = document.getElementById('standard');
+        const allCards = Array.from(standardDiv.querySelectorAll('.stats'));
+        const cardHTMLs = [];
 
-            if (searchTerm.trim() !== '') {
-                standardDiv.style.display = 'none';
-                searchSpinner.style.display = 'block';
-
-                searchTimeout = setTimeout(() => {
-                    fetch(`${API_URL}/search?query=${encodeURIComponent(searchTerm)}`)
-                        .then(response => response.json())
-                        .then(data => {
-                            searchSpinner.style.display = 'none';
-                            output.innerHTML = '';
-                            data.forEach(element => {
-                                const div = document.createElement('div');
-                                div.classList.add('stats');
-                                div.innerHTML = element;
-                                output.appendChild(div);
-                            });
-                            adjustBarLabels(output);
-                        })
-                        .catch(error => {
-                            searchSpinner.style.display = 'none';
-                            console.error('Error:', error);
-                            document.getElementById('server-offline').style.display = 'block';
-                        });
-                }, 250);
-            } else {
-                searchSpinner.style.display = 'none';
-                output.innerHTML = '';
-                standardDiv.style.display = 'block';
-            }
+        // Pull all but the first batch out of the DOM entirely
+        for (let i = BATCH_SIZE; i < allCards.length; i++) {
+            cardHTMLs.push(allCards[i].outerHTML);
+            allCards[i].remove();
         }
 
-        window.onload = function() {
-            const query = new URLSearchParams(window.location.search).get('query');
-            if (query) {
-                document.getElementById('searchBox').value = query;
-                searchExams();
-            }
-        };
+        let loadIndex = 0;
+        let loading = false;
 
-        fetch(`${API_URL}/search?query=test`, { signal: AbortSignal.timeout(5000) })
-            .then(response => {
-                if (!response.ok) throw new Error('API unavailable');
-            })
-            .catch(() => {
-                document.getElementById('server-offline').style.display = 'block';
-            });
+        function loadMore() {
+            if (loading || loadIndex >= cardHTMLs.length) return;
+            loading = true;
+            const fragment = document.createDocumentFragment();
+            const end = Math.min(loadIndex + BATCH_SIZE, cardHTMLs.length);
+            for (let i = loadIndex; i < end; i++) {
+                const div = document.createElement('div');
+                div.innerHTML = cardHTMLs[i];
+                const card = div.firstElementChild;
+                fragment.appendChild(card);
+                labelObserver.observe(card);
+            }
+            standardDiv.appendChild(fragment);
+            loadIndex = end;
+            loading = false;
+        }
+
+        const scrollSentinel = document.createElement('div');
+        scrollSentinel.style.height = '1px';
+        standardDiv.after(scrollSentinel);
+
+        const scrollObserver = new IntersectionObserver((entries) => {
+            if (entries[0].isIntersecting) loadMore();
+        }, { rootMargin: '600px' });
+        scrollObserver.observe(scrollSentinel);
 
         function adjustBarLabels(container) {
             const charts = (container || document).querySelectorAll('.grade-chart');
@@ -14458,7 +14438,6 @@
             });
         }
 
-        // Lazily adjust bar labels only when charts scroll into view
         const labelObserver = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
@@ -14468,7 +14447,7 @@
             });
         }, { rootMargin: '200px' });
 
-        document.querySelectorAll('#standard .stats').forEach(card => {
+        standardDiv.querySelectorAll('.stats').forEach(card => {
             labelObserver.observe(card);
         });
 
@@ -14476,12 +14455,68 @@
         window.addEventListener('resize', () => {
             clearTimeout(resizeTimeout);
             resizeTimeout = setTimeout(() => {
-                // Re-observe all visible cards for resize adjustment
-                document.querySelectorAll('#standard .stats').forEach(card => {
+                standardDiv.querySelectorAll('.stats').forEach(card => {
                     labelObserver.observe(card);
                 });
             }, 200);
         });
+
+        let searchTimeout;
+        function searchExams() {
+            clearTimeout(searchTimeout);
+            const input = document.getElementById('searchBox');
+            const searchTerm = input.value;
+            const searchSpinner = document.getElementById('searchSpinner');
+            const output = document.getElementById('html-output');
+
+            if (searchTerm.trim() !== '') {
+                standardDiv.style.display = 'none';
+                scrollSentinel.style.display = 'none';
+                searchSpinner.style.display = 'block';
+
+                searchTimeout = setTimeout(() => {
+                    fetch(`${API_URL}/search?query=${encodeURIComponent(searchTerm)}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            searchSpinner.style.display = 'none';
+                            output.innerHTML = '';
+                            data.forEach(element => {
+                                const div = document.createElement('div');
+                                div.classList.add('stats');
+                                div.innerHTML = element;
+                                output.appendChild(div);
+                            });
+                            adjustBarLabels(output);
+                        })
+                        .catch(error => {
+                            searchSpinner.style.display = 'none';
+                            console.error('Error:', error);
+                            document.getElementById('server-offline').style.display = 'block';
+                        });
+                }, 250);
+            } else {
+                searchSpinner.style.display = 'none';
+                output.innerHTML = '';
+                standardDiv.style.display = 'block';
+                scrollSentinel.style.display = '';
+            }
+        }
+
+        window.onload = function() {
+            const query = new URLSearchParams(window.location.search).get('query');
+            if (query) {
+                document.getElementById('searchBox').value = query;
+                searchExams();
+            }
+        };
+
+        fetch(`${API_URL}/search?query=test`, { signal: AbortSignal.timeout(5000) })
+            .then(response => {
+                if (!response.ok) throw new Error('API unavailable');
+            })
+            .catch(() => {
+                document.getElementById('server-offline').style.display = 'block';
+            });
 
         setTimeout(function() {
             const tip = document.getElementById('tip');
