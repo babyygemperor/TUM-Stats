@@ -238,6 +238,11 @@
             flex: 1 !important;
             margin: 0 !important;
         }
+
+        #standard .stats {
+            content-visibility: auto;
+            contain-intrinsic-size: auto 500px;
+        }
     </style>
 </head>
 <body>
@@ -14453,12 +14458,29 @@
             });
         }
 
-        adjustBarLabels();
+        // Lazily adjust bar labels only when charts scroll into view
+        const labelObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    adjustBarLabels(entry.target);
+                    labelObserver.unobserve(entry.target);
+                }
+            });
+        }, { rootMargin: '200px' });
+
+        document.querySelectorAll('#standard .stats').forEach(card => {
+            labelObserver.observe(card);
+        });
 
         let resizeTimeout;
         window.addEventListener('resize', () => {
             clearTimeout(resizeTimeout);
-            resizeTimeout = setTimeout(() => adjustBarLabels(), 200);
+            resizeTimeout = setTimeout(() => {
+                // Re-observe all visible cards for resize adjustment
+                document.querySelectorAll('#standard .stats').forEach(card => {
+                    labelObserver.observe(card);
+                });
+            }, 200);
         });
 
         setTimeout(function() {
