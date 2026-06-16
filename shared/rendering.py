@@ -1,4 +1,5 @@
-from html import escape
+import re
+from html import escape, unescape
 
 
 GRADE_COLOURS = {
@@ -50,11 +51,12 @@ SUMMARY_KEYS = [
 
 
 def highlight(text, query):
-    text = escape(text)
-    for word in query.split():
-        if word:
-            text = text.replace(word, f'<span class="highlight">{word}</span>')
-    return text
+    text = escape(unescape(text))
+    words = [re.escape(w) for w in query.split() if w]
+    if not words:
+        return text
+    pattern = re.compile('(' + '|'.join(words) + ')', re.IGNORECASE)
+    return pattern.sub(r'<span class="highlight">\1</span>', text)
 
 
 def _get_value(key, value, data):
