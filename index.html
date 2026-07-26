@@ -120,6 +120,59 @@
             font-size: 12px;
         }
 
+        .suggestion-highlight {
+            padding: 0;
+            border-radius: 2px;
+            background: #fef08a;
+            color: inherit;
+        }
+
+        #examNavigator {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 16px;
+            padding: 12px;
+            border: 1px solid #dbeafe;
+            border-radius: 10px;
+            background: #eff6ff;
+        }
+
+        #examNavigator button, #examDateSelect {
+            min-height: 38px;
+            padding: 8px 12px;
+            border: 1px solid #bfdbfe;
+            border-radius: 8px;
+            background: white;
+            color: #1e40af;
+            font-family: inherit;
+            cursor: pointer;
+        }
+
+        #examNavigator button:disabled {
+            opacity: 0.45;
+            cursor: default;
+        }
+
+        #examPosition {
+            color: #1e3a8a;
+            font-size: 13px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        @media (max-width: 600px) {
+            #examNavigator {
+                flex-wrap: wrap;
+            }
+
+            #examDateSelect {
+                order: -1;
+                width: 100%;
+            }
+        }
+
         #contributeButton {
             padding: 12px 20px;
             background-color: #16a34a;
@@ -310,6 +363,12 @@
     </div>
     <div class="server-offline" id="server-offline">The search server appears to be offline. You can still browse the sample data below. Check <a href="https://status.aamin.dev" target="_blank">status.aamin.dev</a> for server status.</div>
     <div class="note" id="tip">Tip: Use module numbers for consistent search results, as module names can vary.</div>
+    <div id="examNavigator" aria-label="Exam date navigation">
+        <button type="button" id="newerExamButton">← Newer</button>
+        <select id="examDateSelect" aria-label="Select exam date"></select>
+        <span id="examPosition"></span>
+        <button type="button" id="olderExamButton">Older →</button>
+    </div>
     <div id="standard"><div class="stats"><h3>System-Theoretical Principles of Project Management (2SWS FA, WS 2019/20)</h3>
     <table>
     <tbody>
@@ -14521,11 +14580,15 @@
         let searchTimeout;
         let suggestionTimeout;
         let searchRequestId = 0;
+        let selectedModuleExams = [];
+        let selectedExamIndex = 0;
 
         function renderSearchResults(data, requestId) {
             if (requestId !== searchRequestId) return;
             const output = document.getElementById('html-output');
             const searchSpinner = document.getElementById('searchSpinner');
+            document.getElementById('examNavigator').style.display = 'none';
+            selectedModuleExams = [];
             searchSpinner.style.display = 'none';
             output.innerHTML = '';
             const fragment = document.createDocumentFragment();
@@ -14536,6 +14599,58 @@
                 fragment.appendChild(div);
             });
             output.appendChild(fragment);
+            adjustBarLabels(output);
+        }
+
+        function appendHighlightedText(container, text, query) {
+            const value = String(text || '');
+            const needle = String(query || '').toLocaleLowerCase();
+            if (!needle) {
+                container.appendChild(document.createTextNode(value));
+                return;
+            }
+
+            const lowerValue = value.toLocaleLowerCase();
+            let position = 0;
+            let matchPosition = lowerValue.indexOf(needle);
+            while (matchPosition !== -1) {
+                container.appendChild(
+                    document.createTextNode(value.slice(position, matchPosition))
+                );
+                const mark = document.createElement('mark');
+                mark.className = 'suggestion-highlight';
+                mark.textContent = value.slice(matchPosition, matchPosition + needle.length);
+                container.appendChild(mark);
+                position = matchPosition + needle.length;
+                matchPosition = lowerValue.indexOf(needle, position);
+            }
+            container.appendChild(document.createTextNode(value.slice(position)));
+        }
+
+        function renderSelectedExam() {
+            const output = document.getElementById('html-output');
+            const navigator = document.getElementById('examNavigator');
+            if (!selectedModuleExams.length) {
+                navigator.style.display = 'none';
+                output.innerHTML = '<div class="stats">No exams found for this module.</div>';
+                return;
+            }
+
+            const exam = selectedModuleExams[selectedExamIndex];
+            output.innerHTML = '';
+            const card = document.createElement('div');
+            card.className = 'stats';
+            card.innerHTML = exam.html;
+            output.appendChild(card);
+
+            document.getElementById('examDateSelect').value = String(selectedExamIndex);
+            document.getElementById('examPosition').textContent =
+                (selectedExamIndex + 1) + ' of ' + selectedModuleExams.length;
+            document.getElementById('newerExamButton').disabled =
+                selectedExamIndex === 0;
+            document.getElementById('olderExamButton').disabled =
+                selectedExamIndex === selectedModuleExams.length - 1;
+            navigator.style.display = 'flex';
             adjustBarLabels(output);
         }
 
@@ -14571,12 +14686,19 @@
 
                             const moduleLabel = document.createElement('span');
                             moduleLabel.className = 'suggestion-module';
-                            moduleLabel.textContent = module.module_number;
+                            appendHighlightedText(
+                                moduleLabel, module.module_number, query
+                            );
 
                             const details = document.createElement('span');
                             details.className = 'suggestion-details';
                             const examLabel = module.exam_count === 1 ? 'exam' : 'exams';
-                            details.textContent = module.name + ' · ' + module.exam_count + ' ' + examLabel;
+                            appendHighlightedText(details, module.name, query);
+                            details.appendChild(
+                                document.createTextNode(
+                                    ' · ' + module.exam_count + ' ' + examLabel
+                                )
+                            );
 
                             button.appendChild(moduleLabel);
                             button.appendChild(details);
@@ -14606,7 +14728,22 @@
                     if (!response.ok) throw new Error('Search unavailable');
                     return response.json();
                 })
-                .then(data => renderSearchResults(data, requestId))
+                .then(data => {
+                    if (requestId !== searchRequestId) return;
+                    document.getElementById('searchSpinner').style.display = 'none';
+                    selectedModuleExams = data.exams;
+                    selectedExamIndex = 0;
+
+                    const dateSelect = document.getElementById('examDateSelect');
+                    dateSelect.innerHTML = '';
+                    selectedModuleExams.forEach((exam, index) => {
+                        const option = document.createElement('option');
+                        option.value = String(index);
+                        option.textContent = exam.date || 'Unknown date';
+                        dateSelect.appendChild(option);
+                    });
+                    renderSelectedExam();
+                })
                 .catch(error => {
                     if (requestId !== searchRequestId) return;
                     document.getElementById('searchSpinner').style.display = 'none';
@@ -14660,6 +14797,25 @@
 
         document.addEventListener('click', event => {
             if (!event.target.closest('.search-input-wrapper')) hideSuggestions();
+        });
+
+        document.getElementById('newerExamButton').addEventListener('click', () => {
+            if (selectedExamIndex > 0) {
+                selectedExamIndex--;
+                renderSelectedExam();
+            }
+        });
+
+        document.getElementById('olderExamButton').addEventListener('click', () => {
+            if (selectedExamIndex < selectedModuleExams.length - 1) {
+                selectedExamIndex++;
+                renderSelectedExam();
+            }
+        });
+
+        document.getElementById('examDateSelect').addEventListener('change', event => {
+            selectedExamIndex = Number(event.target.value);
+            renderSelectedExam();
         });
 
         window.onload = function() {

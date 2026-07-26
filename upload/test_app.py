@@ -193,12 +193,19 @@ class UploadErrorPrivacyTests(unittest.TestCase):
             with public_app.test_client() as client:
                 response = client.get("/search/module?module=IN0001")
 
-            rendered = response.get_json()
+            result = response.get_json()
+            rendered = result["exams"]
             self.assertEqual(response.status_code, 200)
             self.assertEqual(len(rendered), 2)
-            self.assertIn("Newer exam", rendered[0])
-            self.assertIn("Older exam", rendered[1])
-            self.assertNotIn("Different module", "".join(rendered))
+            self.assertEqual(result["module_number"], "IN0001")
+            self.assertEqual(rendered[0]["date"], "2025-01-01")
+            self.assertIn("Newer exam", rendered[0]["html"])
+            self.assertEqual(rendered[1]["date"], "2023-01-01")
+            self.assertIn("Older exam", rendered[1]["html"])
+            self.assertNotIn(
+                "Different module",
+                "".join(exam["html"] for exam in rendered),
+            )
 
 
 if __name__ == "__main__":

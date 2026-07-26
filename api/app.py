@@ -231,10 +231,17 @@ def create_public_app(repository=None, search_index=None):
             == module_number.casefold()
         ]
         exact_hits.sort(key=lambda hit: str(hit.get("Date", "")), reverse=True)
-        return [
-            json_to_html(dict(hit), query=module_number)
-            for hit in exact_hits
-        ]
+        return {
+            "module_number": module_number,
+            "exams": [
+                {
+                    "date": str(hit.get("Date", "")),
+                    "name": str(hit.get("Name", "")),
+                    "html": json_to_html(dict(hit), query=module_number),
+                }
+                for hit in exact_hits
+            ],
+        }
 
     @app.route("/check", methods=["POST"])
     def check_api():
