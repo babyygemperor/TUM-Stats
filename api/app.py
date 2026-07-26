@@ -11,6 +11,7 @@ from upload.ocr import OCRServiceError, extract_from_image
 
 
 PROCESSING_ERROR_MESSAGE = "Image processing failed. Please try again."
+INTERACTIVE_SEARCH_LIMIT = 20
 SEARCH_ATTRIBUTES = [
     "Date",
     "Module Number",
@@ -140,7 +141,9 @@ def create_public_app(repository=None, search_index=None):
             return []
         try:
             hits = search_index.search(
-                query, limit=100000, attributes=SEARCH_ATTRIBUTES
+                query,
+                limit=INTERACTIVE_SEARCH_LIMIT,
+                attributes=SEARCH_ATTRIBUTES,
             )["hits"]
         except SearchIndexError:
             app.logger.exception("Search failed")

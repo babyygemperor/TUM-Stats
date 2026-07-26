@@ -17,7 +17,11 @@ from upload.ocr import OCRServiceError
 
 
 class FakeSearchIndex:
+    def __init__(self):
+        self.last_limit = None
+
     def search(self, query, limit=100000, attributes=None):
+        self.last_limit = limit
         return {"hits": [{"Name": "Example", "Grade distribution": {"1.0": "1"}}]}
 
 
@@ -72,6 +76,24 @@ class UploadErrorPrivacyTests(unittest.TestCase):
             self.assertIn("submission_id", submission.get_json())
             self.assertEqual(search.status_code, 200)
             self.assertEqual(search.get_json()["hits"][0]["Name"], "Example")
+
+    def test_interactive_search_limits_full_chart_results(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            repository = StatsRepository(
+                database_path=str(root / "stats.sqlite3"),
+                image_dir=str(root / "images"),
+            )
+            search_index = FakeSearchIndex()
+            public_app = create_public_app(
+                repository=repository, search_index=search_index
+            )
+
+            with public_app.test_client() as client:
+                response = client.get("/search?query=IN")
+
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(search_index.last_limit, 20)
 
 
 if __name__ == "__main__":

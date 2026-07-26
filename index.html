@@ -14462,8 +14462,10 @@
         });
 
         let searchTimeout;
+        let searchRequestId = 0;
         function searchExams() {
             clearTimeout(searchTimeout);
+            const requestId = ++searchRequestId;
             const input = document.getElementById('searchBox');
             const searchTerm = input.value;
             const searchSpinner = document.getElementById('searchSpinner');
@@ -14476,25 +14478,33 @@
 
                 searchTimeout = setTimeout(() => {
                     fetch(API_URL + '/search?query=' + encodeURIComponent(searchTerm))
-                        .then(response => response.json())
+                        .then(response => {
+                            if (!response.ok) throw new Error('Search unavailable');
+                            return response.json();
+                        })
                         .then(data => {
+                            if (requestId !== searchRequestId) return;
                             searchSpinner.style.display = 'none';
                             output.innerHTML = '';
+                            const fragment = document.createDocumentFragment();
                             data.forEach(element => {
                                 const div = document.createElement('div');
                                 div.classList.add('stats');
                                 div.innerHTML = element;
-                                output.appendChild(div);
+                                fragment.appendChild(div);
                             });
+                            output.appendChild(fragment);
                             adjustBarLabels(output);
                         })
                         .catch(error => {
+                            if (requestId !== searchRequestId) return;
                             searchSpinner.style.display = 'none';
                             console.error('Error:', error);
                             document.getElementById('server-offline').style.display = 'block';
                         });
                 }, 250);
             } else {
+                searchRequestId++;
                 searchSpinner.style.display = 'none';
                 output.innerHTML = '';
                 standardDiv.style.display = 'block';
