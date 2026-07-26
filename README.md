@@ -29,10 +29,9 @@ docker compose up -d --build --remove-orphans
 
 The `--remove-orphans` option removes the former standalone `stats-upload`
 container. Upload routes now live on `stats-api` at port `6655`; production
-URLs remain unchanged. Port `8079` temporarily maps to the same public
-container so the existing Nginx upload upstream continues working during the
-migration. Nginx can later route all `stats-api.aamin.dev` paths to port
-`6655`, after which the compatibility mapping can be removed.
+URLs remain unchanged. Update Nginx to route all
+`stats-api.aamin.dev` paths, including `/upload` and `/send`, to port `6655`
+before removing the former upload container.
 
 Check migration and startup status:
 

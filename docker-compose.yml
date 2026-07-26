@@ -5,7 +5,6 @@ services:
       dockerfile: api/Dockerfile
     ports:
       - "6655:6655"
-      - "8079:6655"
     volumes:
       - ./runtime:/runtime
     env_file:

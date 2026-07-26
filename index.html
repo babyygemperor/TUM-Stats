@@ -14475,7 +14475,7 @@
                 searchSpinner.style.display = 'block';
 
                 searchTimeout = setTimeout(() => {
-                    fetch(`${API_URL}/search?query=${encodeURIComponent(searchTerm)}`)
+                    fetch(API_URL + '/search?query=' + encodeURIComponent(searchTerm))
                         .then(response => response.json())
                         .then(data => {
                             searchSpinner.style.display = 'none';
@@ -14510,7 +14510,7 @@
             }
         };
 
-        fetch(`${API_URL}/search?query=test`, { signal: AbortSignal.timeout(5000) })
+        fetch(API_URL + '/search?query=test')
             .then(response => {
                 if (!response.ok) throw new Error('API unavailable');
             })

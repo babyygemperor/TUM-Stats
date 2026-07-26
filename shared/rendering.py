@@ -74,10 +74,14 @@ def _get_value(key, value, data):
         return sum(int(v) for k, v in dist.items() if k in CHEATING_KEYS)
     if key == 'Percent. of exams failed':
         total_students = _get_value('Registered', 0, data)
+        if total_students == 0:
+            return "0.0%"
         passed = sum(int(v) for k, v in dist.items() if k in PASSING_GRADES + ["B pass", "B"])
         return f"{round((1.0 - (passed / total_students)) * 100, 2)}%"
     if key == 'Average total':
         total_students = _get_value('Registered', 0, data)
+        if total_students == 0:
+            return 0.0
         grade = 0
         for k, v in dist.items():
             g = "5.0" if k.startswith("5.0") else k
