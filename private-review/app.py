@@ -62,6 +62,30 @@ def create_review_app(repository=None, search_index=None):
         except SearchIndexError:
             return jsonify({"error": "Search is temporarily unavailable"}), 503
 
+    @app.route("/preview", methods=["POST"])
+    def preview():
+        data = (request.get_json(silent=True) or {}).get("data")
+        if not isinstance(data, dict):
+            return jsonify(success=False, message="Invalid data"), 400
+        if not isinstance(data.get("Grade distribution"), dict):
+            return (
+                jsonify(
+                    success=False,
+                    message="Grade distribution must be a JSON object.",
+                ),
+                400,
+            )
+        try:
+            return jsonify(success=True, html=json_to_html(dict(data)))
+        except (KeyError, TypeError, ValueError):
+            return (
+                jsonify(
+                    success=False,
+                    message="The statistics contain invalid values.",
+                ),
+                400,
+            )
+
     @app.route("/update/<path:submission_id>", methods=["POST"])
     def update(submission_id):
         payload = request.get_json(silent=True) or {}

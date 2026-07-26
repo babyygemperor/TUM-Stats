@@ -76,6 +76,45 @@ class ReviewAppTests(unittest.TestCase):
         self.assertEqual(self.search.documents[0]["id"], "IN0001_2026-07-26")
         self.assertEqual(self.repository.pending_outbox(), [])
 
+    def test_review_page_lazy_loads_submission_content(self):
+        image = "data:image/png;base64," + base64.b64encode(b"image").decode()
+        submission_id = self.repository.create_submission(
+            image,
+            {
+                "Name": "Example",
+                "Date": "2026-07-26",
+                "Grade distribution": {"1.0": "1"},
+            },
+        )
+
+        with self.app.test_client() as client:
+            response = client.get("/")
+
+        html = response.get_data(as_text=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('id="sourceImage"', html)
+        self.assertIn(submission_id, html)
+        self.assertNotIn('id="sourceImage" src=', html)
+        self.assertNotIn('<div class="grade-chart"', html)
+
+    def test_preview_uses_canonical_server_renderer(self):
+        with self.app.test_client() as client:
+            response = client.post(
+                "/preview",
+                json={
+                    "data": {
+                        "Name": "Preview example",
+                        "Module Number": "IN0001",
+                        "Date": "2026-07-26",
+                        "Grade distribution": {"1.0": "1"},
+                    }
+                },
+            )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.get_json()["success"])
+        self.assertIn("Preview example", response.get_json()["html"])
+
 
 if __name__ == "__main__":
     unittest.main()

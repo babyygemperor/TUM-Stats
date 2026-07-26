@@ -3,311 +3,341 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Review Statistics</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <title>Stats Review</title>
     <style>
-        *, *::before, *::after {
+        :root {
+            color-scheme: light;
+            --bg: #f4f6f8;
+            --surface: #ffffff;
+            --border: #dfe3e8;
+            --muted: #687385;
+            --text: #172033;
+            --primary: #2457d6;
+            --primary-dark: #1946b7;
+            --success: #16834b;
+            --warning-bg: #fff7df;
+            --warning: #805b00;
+            --danger-bg: #fff0f0;
+            --danger: #a12727;
+        }
+
+        * {
             box-sizing: border-box;
         }
 
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             margin: 0;
-            padding: 24px 16px;
-            background-color: #f8f9fa;
-            color: #1a1a1a;
+            background: var(--bg);
+            color: var(--text);
+            font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
             -webkit-font-smoothing: antialiased;
         }
 
-        .page-header {
-            max-width: 1400px;
-            margin: 0 auto 24px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
+        button, textarea {
+            font: inherit;
         }
 
-        .page-header h1 {
-            font-size: 22px;
-            font-weight: 600;
-            color: #111;
-            margin: 0;
-            letter-spacing: -0.3px;
-        }
-
-        .badge {
-            display: inline-flex;
-            align-items: center;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 13px;
-            font-weight: 600;
-        }
-
-        .badge-pending {
-            background-color: #fef3c7;
-            color: #92400e;
-        }
-
-        .badge-done {
-            background-color: #dcfce7;
-            color: #166534;
-        }
-
-        .empty-state {
-            max-width: 1400px;
-            margin: 0 auto;
-            text-align: center;
-            padding: 80px 20px;
-            color: #6b7280;
-        }
-
-        .empty-state .icon {
-            font-size: 48px;
-            margin-bottom: 16px;
-        }
-
-        .empty-state p {
-            font-size: 16px;
-            margin: 0;
-        }
-
-        .review-item {
-            max-width: 1400px;
-            margin: 0 auto 32px;
-            background: white;
-            border: 1px solid #e5e7eb;
-            border-radius: 12px;
-            overflow: hidden;
-        }
-
-        .review-item-header {
+        .topbar {
+            position: sticky;
+            top: 0;
+            z-index: 20;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 16px 20px;
-            border-bottom: 1px solid #e5e7eb;
-            background: #fafafa;
+            gap: 20px;
+            min-height: 68px;
+            padding: 12px max(18px, calc((100vw - 1500px) / 2));
+            border-bottom: 1px solid var(--border);
+            background: rgba(255, 255, 255, 0.96);
+            backdrop-filter: blur(12px);
         }
 
-        .review-item-header .item-title {
-            font-size: 14px;
-            font-weight: 600;
-            color: #374151;
+        .brand {
+            display: flex;
+            align-items: baseline;
+            gap: 10px;
         }
 
-        .review-item-header .item-counter {
+        .brand h1 {
+            margin: 0;
+            font-size: 19px;
+            letter-spacing: -0.02em;
+        }
+
+        .queue-count {
+            padding: 4px 9px;
+            border-radius: 999px;
+            background: #eef2ff;
+            color: #384b9e;
             font-size: 12px;
-            color: #9ca3af;
+            font-weight: 700;
         }
 
-        .review-item-body {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            min-height: 0;
-        }
-
-        .review-left {
-            padding: 20px;
-            border-right: 1px solid #e5e7eb;
+        .queue-navigation {
             display: flex;
-            flex-direction: column;
-            gap: 16px;
-        }
-
-        .review-right {
-            padding: 20px;
-            overflow-x: auto;
-        }
-
-        .review-left img {
-            width: 100%;
-            border-radius: 8px;
-            border: 1px solid #e5e7eb;
-        }
-
-        .review-left textarea {
-            width: 100%;
-            min-height: 240px;
-            padding: 12px;
-            font-family: 'SF Mono', 'Fira Code', 'Fira Mono', Menlo, Consolas, monospace;
-            font-size: 13px;
-            line-height: 1.5;
-            border: 1px solid #d1d5db;
-            border-radius: 8px;
-            background: #f9fafb;
-            color: #1a1a1a;
-            resize: vertical;
-            outline: none;
-            transition: border-color 0.2s, box-shadow 0.2s;
-        }
-
-        .review-left textarea:focus {
-            border-color: #2563eb;
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-            background: white;
-        }
-
-        .actions {
-            display: flex;
+            align-items: center;
             gap: 8px;
         }
 
-        .btn {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 8px;
-            font-family: inherit;
+        .position {
+            min-width: 82px;
+            color: var(--muted);
+            text-align: center;
+            font-size: 13px;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .workspace {
+            display: grid;
+            grid-template-columns: minmax(360px, 0.9fr) minmax(440px, 1.1fr);
+            gap: 18px;
+            width: min(1500px, calc(100% - 32px));
+            margin: 18px auto 100px;
+        }
+
+        .panel {
+            min-width: 0;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            background: var(--surface);
+            box-shadow: 0 3px 12px rgba(26, 36, 56, 0.04);
+        }
+
+        .panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            min-height: 55px;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .panel-header h2 {
+            overflow: hidden;
+            margin: 0;
             font-size: 14px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: background-color 0.2s, transform 0.1s;
-            flex: 1;
+            font-weight: 700;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
-        .btn:active {
-            transform: scale(0.98);
+        .panel-body {
+            padding: 16px;
         }
 
-        .btn-edit {
-            background-color: #f3f4f6;
-            color: #374151;
+        .source-image-wrap {
+            display: grid;
+            min-height: 280px;
+            max-height: 52vh;
+            overflow: auto;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background:
+                linear-gradient(45deg, #f2f3f5 25%, transparent 25%),
+                linear-gradient(-45deg, #f2f3f5 25%, transparent 25%),
+                linear-gradient(45deg, transparent 75%, #f2f3f5 75%),
+                linear-gradient(-45deg, transparent 75%, #f2f3f5 75%);
+            background-position: 0 0, 0 8px, 8px -8px, -8px 0;
+            background-size: 16px 16px;
+            place-items: center;
         }
 
-        .btn-edit:hover {
-            background-color: #e5e7eb;
+        #sourceImage {
+            display: block;
+            max-width: 100%;
+            height: auto;
+            cursor: zoom-in;
         }
 
-        .btn-accept {
-            background-color: #16a34a;
-            color: white;
+        .editor-label {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 16px 0 7px;
+            font-size: 13px;
+            font-weight: 700;
         }
 
-        .btn-accept:hover {
-            background-color: #15803d;
-        }
-
-        .btn-accept.loading {
-            opacity: 0.7;
-            cursor: wait;
-        }
-
-        .review-right h3 {
-            font-size: 16px;
+        #jsonStatus {
+            color: var(--muted);
+            font-size: 12px;
             font-weight: 600;
-            color: #111;
-            margin: 0 0 12px;
         }
 
-        .review-right table {
+        #jsonStatus.invalid {
+            color: var(--danger);
+        }
+
+        #jsonEditor {
             width: 100%;
-            font-size: 14px;
-            border-collapse: collapse;
+            min-height: 300px;
+            padding: 13px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            outline: none;
+            background: #fafbfc;
+            color: #162033;
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+            font-size: 12px;
+            line-height: 1.55;
+            resize: vertical;
+            tab-size: 4;
         }
 
-        .review-right td {
-            padding: 4px 8px 4px 0;
+        #jsonEditor:focus {
+            border-color: #8aa8f1;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(36, 87, 214, 0.1);
+        }
+
+        .preview {
+            min-height: 600px;
+            overflow-x: auto;
+        }
+
+        .preview-placeholder {
+            display: grid;
+            min-height: 420px;
+            color: var(--muted);
+            text-align: center;
+            place-items: center;
+        }
+
+        .preview h3 {
+            margin: 0 0 14px;
+            font-size: 17px;
+        }
+
+        .preview table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .preview td {
+            padding: 5px 8px 5px 0;
             vertical-align: top;
         }
 
-        .review-right td:first-child {
-            color: #6b7280;
+        .preview td:first-child {
+            width: 1%;
+            color: var(--muted);
             white-space: nowrap;
         }
 
-        .review-right td:last-child {
-            font-weight: 500;
-        }
-
-        .review-right label {
-            color: #6b7280;
-            font-weight: 400;
-        }
-
-        .item-link {
-            display: inline-block;
-            margin-top: 12px;
-            font-size: 13px;
-            color: #2563eb;
-            text-decoration: none;
-            word-break: break-all;
-        }
-
-        .item-link:hover {
-            text-decoration: underline;
-        }
-
-        .duplicate-warning {
+        .notice {
             display: none;
-            margin-top: 12px;
-            padding: 10px 14px;
-            background-color: #fef2f2;
-            border-left: 3px solid #ef4444;
-            border-radius: 8px;
+            margin: 0 0 14px;
+            padding: 11px 13px;
+            border-radius: 9px;
             font-size: 13px;
-            color: #991b1b;
-            line-height: 1.5;
+            line-height: 1.45;
         }
 
-        .duplicate-warning a {
-            color: #2563eb;
+        .notice.warning {
+            border: 1px solid #f2d47b;
+            background: var(--warning-bg);
+            color: var(--warning);
+        }
+
+        .notice.error {
+            border: 1px solid #efb5b5;
+            background: var(--danger-bg);
+            color: var(--danger);
+        }
+
+        .notice a {
+            color: inherit;
+            font-weight: 700;
+        }
+
+        .actions {
+            position: fixed;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 20;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            padding: 13px max(18px, calc((100vw - 1500px) / 2));
+            border-top: 1px solid var(--border);
+            background: rgba(255, 255, 255, 0.97);
+            backdrop-filter: blur(12px);
+        }
+
+        .btn {
+            min-height: 40px;
+            padding: 9px 15px;
+            border: 1px solid var(--border);
+            border-radius: 9px;
+            background: white;
+            color: #344054;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .btn:hover:not(:disabled) {
+            background: #f7f8fa;
+        }
+
+        .btn:disabled {
+            cursor: default;
+            opacity: 0.45;
+        }
+
+        .btn-primary {
+            border-color: var(--primary);
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: var(--primary-dark);
+        }
+
+        .btn-success {
+            min-width: 150px;
+            border-color: var(--success);
+            background: var(--success);
+            color: white;
+        }
+
+        .shortcut {
+            margin-left: 6px;
+            opacity: 0.65;
+            font-size: 11px;
             font-weight: 500;
         }
 
-        /* Keyboard shortcut hint */
-        .shortcut-hint {
-            max-width: 1400px;
-            margin: 0 auto 16px;
-            font-size: 12px;
-            color: #9ca3af;
-        }
-
-        kbd {
-            display: inline-block;
-            padding: 2px 6px;
-            font-family: inherit;
-            font-size: 11px;
-            background: #f3f4f6;
-            border: 1px solid #d1d5db;
-            border-radius: 4px;
-            color: #374151;
-        }
-
-        @media (max-width: 900px) {
-            .review-item-body {
-                grid-template-columns: 1fr;
-            }
-
-            .review-left {
-                border-right: none;
-                border-bottom: 1px solid #e5e7eb;
-            }
-        }
-
-        @media (max-width: 600px) {
-            body {
-                padding: 16px 12px;
-            }
-
-            .page-header {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 8px;
-            }
-        }
-        .bar-label {
-            color: black;
+        .empty-state {
+            display: grid;
+            min-height: calc(100vh - 68px);
+            padding: 30px;
+            color: var(--muted);
             text-align: center;
+            place-items: center;
+        }
+
+        .empty-state h2 {
+            margin: 0 0 8px;
+            color: var(--text);
+        }
+
+        .bar-label {
             position: absolute;
             bottom: 100%;
             left: 50%;
-            transform: translateX(-50%);
-            white-space: nowrap;
             width: max-content;
-            font-size: 0.65em;
             margin-bottom: 0.3em;
+            transform: translateX(-50%);
+            color: black;
+            font-size: 0.65em;
+            text-align: center;
+            white-space: nowrap;
         }
 
         .grade-chart > div:nth-child(even) .bar-label {
@@ -315,374 +345,361 @@
         }
 
         .grade-chart {
+            width: 100% !important;
             margin: 3em 0 !important;
             padding: 0 !important;
-            width: 100% !important;
         }
 
         .grade-chart > div {
             flex: 1 !important;
             margin: 0 !important;
         }
+
+        @media (max-width: 900px) {
+            .workspace {
+                grid-template-columns: 1fr;
+            }
+
+            .source-image-wrap {
+                max-height: 60vh;
+            }
+        }
+
+        @media (max-width: 620px) {
+            .topbar {
+                align-items: flex-start;
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .queue-navigation {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .workspace {
+                width: min(100% - 20px, 1500px);
+                margin-top: 10px;
+            }
+
+            .panel-body {
+                padding: 12px;
+            }
+
+            .actions {
+                justify-content: stretch;
+            }
+
+            .actions .btn {
+                flex: 1;
+                padding-inline: 8px;
+            }
+
+            .shortcut {
+                display: none;
+            }
+        }
     </style>
 </head>
 <body>
-<div class="page-header">
-    <h1>Review Statistics</h1>
-    {% if items | length > 0 %}
-        <span class="badge badge-pending">{{ items | length }} pending</span>
-    {% else %}
-        <span class="badge badge-done">All done</span>
-    {% endif %}
-</div>
+<header class="topbar">
+    <div class="brand">
+        <h1>Stats Review</h1>
+        <span class="queue-count" id="queueCount">{{ items | length }} pending</span>
+    </div>
+    <nav class="queue-navigation" aria-label="Review queue navigation">
+        <button class="btn" id="previousButton" type="button">← Previous</button>
+        <span class="position" id="queuePosition"></span>
+        <button class="btn" id="nextButton" type="button">Next →</button>
+    </nav>
+</header>
 
 {% if items | length == 0 %}
-<div class="empty-state">
-    <div class="icon">&#9989;</div>
-    <p>No statistics to review. All caught up!</p>
-</div>
+<main class="empty-state">
+    <div>
+        <h2>All caught up</h2>
+        <p>There are no exam statistics waiting for review.</p>
+    </div>
+</main>
 {% else %}
-<div class="shortcut-hint">
-    <kbd>Tab</kbd> to navigate between items &middot; Edit JSON then click <strong>Edit</strong> to preview or <strong>Accept</strong> to publish
-</div>
+<main class="workspace" id="workspace">
+    <section class="panel">
+        <div class="panel-header">
+            <h2 id="itemTitle">Submission</h2>
+            <a class="btn" id="openImageLink" href="#" target="_blank" rel="noopener">Open image</a>
+        </div>
+        <div class="panel-body">
+            <div class="source-image-wrap">
+                <img id="sourceImage" alt="Uploaded exam statistics screenshot">
+            </div>
+            <label class="editor-label" for="jsonEditor">
+                Extracted JSON
+                <span id="jsonStatus">Valid JSON</span>
+            </label>
+            <textarea id="jsonEditor" spellcheck="false"></textarea>
+        </div>
+    </section>
 
-{% for item in items %}
-<div class="review-item" id="item-{{ item.timestamp }}">
-    <div class="review-item-header">
-        <span class="item-title">{{ item.data.get('Name', 'Unnamed') | truncate(60) }}</span>
-        <span class="item-counter">{{ loop.index }} of {{ items | length }}</span>
-    </div>
-    <div class="review-item-body">
-        <div class="review-left">
-            <img src="{{ item.image }}" alt="Screenshot">
-            <textarea id="json-data-{{ item.timestamp }}">{{ item.data | tojson }}</textarea>
-            <div class="actions">
-                <button onclick="editData('{{ item.timestamp }}')" class="btn btn-edit">Edit Preview</button>
-                <button onclick="acceptData('{{ item.timestamp }}')" class="btn btn-accept" id="accept-btn-{{ item.timestamp }}">Accept</button>
-            </div>
+    <section class="panel">
+        <div class="panel-header">
+            <h2>Publication preview</h2>
+            <a class="btn" id="existingEntryLink" href="#" target="_blank" rel="noopener">View on site</a>
         </div>
-        <div class="review-right">
-            <div id="html-{{ item.timestamp }}">
-                {{ json_to_html(item.data) | safe }}
-            </div>
-            <a href="#" class="item-link" id="link-{{ item.timestamp }}" data-module="{{ item.data['Module Number'] }}" data-date="{{ item.data['Date'] }}"></a>
-            <div class="duplicate-warning" id="duplicate-warning-{{ item.timestamp }}">
-                <p id="duplicate-message-{{ item.timestamp }}" style="margin:0;"></p>
-            </div>
+        <div class="panel-body preview" id="preview">
+            <div class="preview-placeholder">Generating preview…</div>
         </div>
-    </div>
-</div>
-{% endfor %}
+    </section>
+</main>
+
+<footer class="actions">
+    <button class="btn" id="formatButton" type="button">Format JSON</button>
+    <button class="btn btn-primary" id="previewButton" type="button">Update preview <span class="shortcut">Ctrl ↵</span></button>
+    <button class="btn btn-success" id="approveButton" type="button">Approve & next <span class="shortcut">Ctrl ⇧ ↵</span></button>
+</footer>
 {% endif %}
 
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 <script>
+    const REVIEW_ITEMS = {{ items | tojson }};
     const IS_DEV = ['localhost', '127.0.0.1', ''].includes(window.location.hostname);
     const SITE_URL = IS_DEV ? 'http://localhost' : 'https://stats.aamin.dev';
     const API_URL = IS_DEV ? 'http://localhost:6655' : 'https://stats-api.aamin.dev';
 
-    document.addEventListener('DOMContentLoaded', function () {
-        const textAreas = document.querySelectorAll('textarea');
-        textAreas.forEach(textArea => {
-            prettyPrintJson(textArea);
-        });
+    let currentIndex = 0;
+    let previewRequest = 0;
+    const editedData = new Map();
 
-        document.querySelectorAll('a[id^="link-"]').forEach(link => {
-            const mod = link.dataset.module;
-            const date = link.dataset.date;
-            if (mod || date) {
-                link.href = SITE_URL + '/?query=' + mod + '%20' + date;
-                link.textContent = 'View on site: ' + mod + ' ' + date;
-            }
-        });
-
-        const items = document.querySelectorAll('.review-item');
-        items.forEach(item => {
-            const ts = item.id.substring(5);
-            const el = document.getElementById('json-data-' + ts);
-            if (el) {
-                try {
-                    const itemData = JSON.parse(el.value);
-                    checkDuplicate(itemData, ts);
-                } catch(e) {}
-            }
-        });
-
-        adjustBarLabels();
-    });
-
-    let resizeTimeout;
-    window.addEventListener('resize', () => {
-        clearTimeout(resizeTimeout);
-        resizeTimeout = setTimeout(() => adjustBarLabels(), 200);
-    });
-
-    function checkDuplicate(itemData, timestamp) {
-        $.ajax({
-            method: 'POST',
-            url: API_URL + '/check',
-            contentType: 'application/json',
-            data: JSON.stringify({
-                query: itemData['Name'].split(" ")[0] + " " + itemData['Date']
-            }),
-            success: function (data) {
-                if (data['hits'] && data['hits'].length > 0 && itemData['Date'] == data['hits'][0]['Date']) {
-                    var duplicateUrl = SITE_URL + "/?query=" + data['hits'][0]['Module Number'] + "%20" + data['hits'][0]['Date'];
-                    var warningElement = document.getElementById('duplicate-warning-' + timestamp);
-                    var messageElement = document.getElementById('duplicate-message-' + timestamp);
-                    warningElement.style.display = 'block';
-                    messageElement.innerHTML = `Possible duplicate &mdash; <a href="${duplicateUrl}" target="_blank">check existing entry</a>`;
-                }
-            },
-            error: function (data) {
-                console.log("Error occurred while checking if the stats already exist: " + data);
-            }
-        });
-    }
-
-    function prettyPrintJson(textArea) {
+    function parseEditor(showError) {
+        const editor = document.getElementById('jsonEditor');
+        const status = document.getElementById('jsonStatus');
         try {
-            const jsonData = JSON.parse(textArea.value.trim());
-            textArea.value = JSON.stringify(jsonData, null, 4);
-        } catch (e) {
-            console.error('Error parsing JSON:', e);
+            const data = JSON.parse(editor.value);
+            status.textContent = 'Valid JSON';
+            status.classList.remove('invalid');
+            return data;
+        } catch (error) {
+            status.textContent = 'Invalid JSON';
+            status.classList.add('invalid');
+            if (showError) showNotice(error.message, 'error');
+            return null;
         }
     }
 
-    function editData(timestamp) {
-        var jsonDataElement = document.getElementById('json-data-' + timestamp);
-        var linkElement = document.getElementById('link-' + timestamp);
-        try {
-            var jsonData = JSON.parse(jsonDataElement.value);
-            var htmlContent = jsonToHtml(jsonData);
-            var container = document.getElementById('html-' + timestamp);
-            container.innerHTML = htmlContent;
-            adjustBarLabels(container);
-            linkElement.href = SITE_URL + '/?query=' + jsonData['Module Number'] + '%20' + jsonData['Date'];
-            linkElement.textContent = 'View on site: ' + jsonData['Module Number'] + ' ' + jsonData['Date'];
-        } catch (e) {
-            console.error('Invalid JSON:', e);
-        }
+    function saveCurrentEdits() {
+        if (!REVIEW_ITEMS.length) return;
+        const data = parseEditor(false);
+        if (data) editedData.set(REVIEW_ITEMS[currentIndex].id, data);
     }
 
-    function acceptData(timestamp) {
-        editData(timestamp);
-        var jsonDataElement = document.getElementById('json-data-' + timestamp);
-        var acceptBtn = document.getElementById('accept-btn-' + timestamp);
-        try {
-            var data = JSON.parse(jsonDataElement.value);
-            acceptBtn.textContent = 'Processing...';
-            acceptBtn.classList.add('loading');
-            acceptBtn.disabled = true;
-
-            fetch(`/update/${timestamp}`, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({data: data})
-            })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        acceptBtn.textContent = 'Done';
-                        acceptBtn.style.backgroundColor = '#16a34a';
-                        setTimeout(() => window.location.reload(), 500);
-                    } else {
-                        acceptBtn.textContent = 'Accept';
-                        acceptBtn.classList.remove('loading');
-                        acceptBtn.disabled = false;
-                        alert(data.message);
-                    }
-                })
-                .catch(error => {
-                    acceptBtn.textContent = 'Accept';
-                    acceptBtn.classList.remove('loading');
-                    acceptBtn.disabled = false;
-                    console.error('Error:', error);
-                });
-        } catch (e) {
-            console.error('Invalid JSON:', e);
+    function showNotice(message, type, link) {
+        const preview = document.getElementById('preview');
+        let notice = preview.querySelector('.notice');
+        if (!notice) {
+            notice = document.createElement('div');
+            preview.prepend(notice);
         }
+        notice.className = 'notice ' + type;
+        notice.textContent = message;
+        if (link) {
+            notice.appendChild(document.createTextNode(' '));
+            const anchor = document.createElement('a');
+            anchor.href = link;
+            anchor.target = '_blank';
+            anchor.rel = 'noopener';
+            anchor.textContent = 'Check existing entry';
+            notice.appendChild(anchor);
+        }
+        notice.style.display = 'block';
     }
 
-    function jsonToHtml(jsonData) {
-        function escapeHtml(unsafe) {
-            return unsafe.replace(/&/g, "&amp;")
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;")
-                .replace(/"/g, "&quot;")
-                .replace(/'/g, "&#039;");
-        }
-
-        function calculateValues(key, data) {
-            const distribution = data['Grade distribution'] || {};
-            let total = Object.values(distribution).reduce((sum, count) => sum + parseInt(count, 10), 0);
-            let passingGrades = ["1.0", "1.3", "1.7", "2.0", "2.3", "2.7", "3.0", "3.3", "3.7", "4.0", "4.3", "4.7", "5.0", "B pass", "B"];
-            let notPresentGrades = ["5.0X", "5.0 X", "5.0 X Nicht erschienen"];
-            let rejectionGrades = ["5.0Z", "5.0 Z", "5.0Z Zurückweisung"];
-            let cheatingGrades = ["5.0U", "5.0 U", "5.0 Ungültig", "5.0U Täuschung", "5.0 U Täuschung"];
-
-            switch (key) {
-                case 'Registered':
-                    return total;
-                case 'Attempt made':
-                    return Object.entries(distribution).reduce((sum, [grade, count]) => passingGrades.includes(grade) ? sum + parseInt(count, 10) : sum, 0);
-                case 'Not present':
-                    return Object.entries(distribution).reduce((sum, [grade, count]) => notPresentGrades.includes(grade) ? sum + parseInt(count, 10) : sum, 0);
-                case 'Rejection':
-                    return Object.entries(distribution).reduce((sum, [grade, count]) => rejectionGrades.includes(grade) ? sum + parseInt(count, 10) : sum, 0);
-                case 'Not valid/cheating':
-                    return Object.entries(distribution).reduce((sum, [grade, count]) => cheatingGrades.includes(grade) ? sum + parseInt(count, 10) : sum, 0);
-                case 'Percent. of exams failed':
-                    let passed = Object.entries(distribution).reduce((sum, [grade, count]) => passingGrades.includes(grade) ? sum + parseInt(count, 10) : sum, 0);
-                    return ((1.0 - (passed / total)) * 100).toFixed(2) + '%';
-                case 'Average total':
-                    let totalGrades = Object.entries(distribution).reduce((sum, [grade, count]) => sum + (parseFloat(grade) * parseInt(count, 10)), 0);
-                    return (totalGrades / total).toFixed(3);
-                case 'Average (assessed as passed)':
-                    let assessed = Object.entries(distribution).reduce((acc, [grade, count]) => {
-                        if (passingGrades.includes(grade)) {
-                            acc.total += parseFloat(grade) * parseInt(count, 10);
-                            acc.count += parseInt(count, 10);
-                        }
-                        return acc;
-                    }, {total: 0, count: 0});
-                    return (assessed.count === 0) ? 0 : (assessed.total / assessed.count).toFixed(3);
-                default:
-                    return data[key] || '-';
-            }
-        }
-
-        function renderDistribution(distribution) {
-            const requiredGrades = ["1.0", "1.3", "1.7", "2.0", "2.3", "2.7", "3.0", "3.3", "3.7", "4.0", "4.3", "4.7", "5.0"];
-            requiredGrades.forEach(grade => {
-                if (!distribution.hasOwnProperty(grade)) {
-                    distribution[grade] = "0";
-                }
-            });
-
-            let totalCandidates = Object.values(distribution).reduce((sum, count) => sum + parseInt(count), 0);
-
-            let htmlContent = '<div class="grade-chart" style="display: flex; flex-direction: row; align-items: flex-end; position: relative; margin-top:3em; margin-bottom:3em; width: 100%; height: 24em; z-index: 100;">' +
-                '<div style="position: absolute; left: 0; height: 23em; width: 1px; background-color: black; bottom: 20px;"></div>' +
-                '<div style="position: absolute; width: 100%; height: 1px; background-color: black; bottom: 20px; left: 0;"></div>';
-
-            const gradeColours = {
-                "1.0": "rgb(0,255,0)", "1.1": "rgb(12,255,0)", "1.2": "rgb(25,255,0)", "1.3": "rgb(38,255,0)",
-                "1.4": "rgb(51,255,0)", "1.5": "rgb(63,255,0)", "1.6": "rgb(76,255,0)", "1.7": "rgb(89,255,0)",
-                "1.8": "rgb(101,255,0)", "1.9": "rgb(114,255,0)", "2.0": "rgb(127,255,0)", "2.1": "rgb(140,255,0)",
-                "2.2": "rgb(153,255,0)", "2.3": "rgb(165,255,0)", "2.4": "rgb(178,255,0)", "2.5": "rgb(191,255,0)",
-                "2.6": "rgb(204,255,0)", "2.7": "rgb(216,255,0)", "2.8": "rgb(229,255,0)", "2.9": "rgb(242,255,0)",
-                "3.0": "rgb(255,255,0)", "3.1": "rgb(255,242,0)", "3.2": "rgb(255,229,0)", "3.3": "rgb(255,216,0)",
-                "3.4": "rgb(255,204,0)", "3.5": "rgb(255,191,0)", "3.6": "rgb(255,178,0)", "3.7": "rgb(255,165,0)",
-                "3.8": "rgb(255,153,0)", "3.9": "rgb(255,140,0)", "4.0": "rgb(255,127,0)", "4.1": "rgb(255,114,0)",
-                "4.2": "rgb(255,101,0)", "4.3": "rgb(255,89,0)", "4.4": "rgb(255,76,0)", "4.5": "rgb(255,63,0)",
-                "4.6": "rgb(255,51,0)", "4.7": "rgb(255,38,0)", "4.8": "rgb(255,25,0)", "4.9": "rgb(255,12,0)",
-                "5.0": "rgb(255,0,0)", "5.0X": "rgb(255,0,50)", "5.0 X": "rgb(255,0,50)",
-                "5.0 X Nicht erschienen": "rgb(255,0,50)", "5.0X Nicht erschienen": "rgb(255,0,50)",
-                "5.0U": "rgb(255,0,50)", "5.0 U": "rgb(255,0,50)",
-                "5.0 Ungültig": "rgb(255,0,50)", "5.0U Ungültig": "rgb(255,0,50)", "5.0 U Ungültig": "rgb(255,0,50)",
-                "5.0 U Täuschung": "rgb(255,0,50)", "5.0U Täuschung": "rgb(255,0,50)",
-                "5.0 U Ungültig/Täuschung": "rgb(255,0,50)", "5.0U Ungültig/Täuschung": "rgb(255,0,50)",
-                "5.0Z": "rgb(255,0,50)", "5.0 Z": "rgb(255,0,50)",
-                "5.0Z Zurückweisung": "rgb(255,0,50)", "5.0 Z Zurückweisung": "rgb(255,0,50)",
-                "Unknown": "rgb(100,100,100)"
-            };
-
-            const sortedKeys = Object.keys(distribution).sort();
-
-            sortedKeys.forEach(grade => {
-                const count = distribution[grade];
-                let percentage = totalCandidates === 0 ? 0 : (parseInt(count) / totalCandidates) * 100;
-                let barHeight = totalCandidates === 0 ? 0 : `${(parseInt(count) / Math.max(...Object.values(distribution).map(x => parseInt(x)))) * 20}em`;
-                let colour = gradeColours[grade] || "rgb(100,100,100)";
-                htmlContent += '<div style="flex: 1; position: relative;">';
-                htmlContent += `<div style="position: absolute; margin-left: 0; width: 100%; margin-top: 3.0em; height: ${barHeight}; background-color: ${colour}; bottom: 21px; z-index: 101">`;
-                if (percentage > 0) {
-                    htmlContent += `<div class="bar-label">${percentage.toFixed(2)}%<br>${count} K.</div></div>`;
-                } else {
-                    htmlContent += `<div class="bar-label"><br>${count} K.</div></div>`;
-                }
-                htmlContent += `<div style="position: absolute; width: 100%; text-align: center; margin-top: -1em;">${escapeHtml(grade)}</div>`;
-                htmlContent += '</div>';
-            });
-
-            htmlContent += '</div>';
-            return htmlContent;
-        }
-
-        function renderHtml(data, depth = 0) {
-            let htmlContent = "";
-            let distributionHtml = "";
-            if (data instanceof Object) {
-                if (depth === 0) {
-                    const title = data.Name || '';
-                    htmlContent += `<h3>${title}</h3>\n`;
-                    htmlContent += "<table>\n<tbody>\n";
-                }
-                for (const [key, value] of Object.entries(data)) {
-                    if (value instanceof Object && key === "Grade distribution") {
-                        continue;
-                    } else if (typeof value === 'object' && value !== null) {
-                        continue;
-                    } else {
-                        const labelId = `ST${Math.abs(String(key).hashCode()) % 1000000000000}`;
-                        let displayValue = calculateValues(key, data);
-                        htmlContent += `<tr><td><label for='${labelId}'>${escapeHtml(key)}:</label></td>`;
-                        htmlContent += `<td id='${labelId}'>${displayValue}</td></tr>\n`;
-                    }
-                }
-                htmlContent += `<tr><td colspan='2'>${escapeHtml('Grade distribution')}: Percent % / grade\nK. = Number of candidates</td></tr>\n`;
-                distributionHtml = renderDistribution(data["Grade distribution"]);
-                if (depth === 0) {
-                    htmlContent += "</tbody>\n</table>\n";
-                }
-            }
-            htmlContent += distributionHtml;
-            return htmlContent;
-        }
-
-        return renderHtml(jsonData);
+    function clearNotice() {
+        const notice = document.querySelector('#preview .notice');
+        if (notice) notice.remove();
     }
 
     function adjustBarLabels(container) {
         const charts = (container || document).querySelectorAll('.grade-chart');
         charts.forEach(chart => {
             const labels = chart.querySelectorAll('.bar-label');
-            if (labels.length === 0) return;
-
-            const barContainers = Array.from(chart.children).filter(
-                el => el.style.position === 'relative'
+            const bars = Array.from(chart.children).filter(
+                element => element.style.position === 'relative'
             );
-            if (barContainers.length === 0) return;
-            const barWidth = barContainers[0].getBoundingClientRect().width;
-            if (barWidth === 0) return;
-
-            const refSize = 16;
-            labels.forEach(l => l.style.fontSize = refSize + 'px');
-
+            if (!labels.length || !bars.length) return;
+            const barWidth = bars[0].getBoundingClientRect().width;
+            if (!barWidth) return;
+            labels.forEach(label => label.style.fontSize = '16px');
             let maxWidth = 0;
-            labels.forEach(l => {
-                const w = l.getBoundingClientRect().width;
-                if (w > maxWidth) maxWidth = w;
+            labels.forEach(label => {
+                maxWidth = Math.max(maxWidth, label.getBoundingClientRect().width);
             });
-
-            if (maxWidth === 0) return;
-
-            const optimalSize = (barWidth / maxWidth) * refSize;
-            const finalSize = Math.min(Math.max(Math.floor(optimalSize), 8), 14);
-            labels.forEach(l => l.style.fontSize = finalSize + 'px');
+            if (!maxWidth) return;
+            const size = Math.min(Math.max(Math.floor((barWidth / maxWidth) * 16), 8), 14);
+            labels.forEach(label => label.style.fontSize = size + 'px');
         });
     }
 
-    String.prototype.hashCode = function () {
-        let hash = 0;
-        for (let i = 0; i < this.length; i++) {
-            const char = this.charCodeAt(i);
-            hash = ((hash << 5) - hash) + char;
-            hash |= 0;
-        }
-        return hash;
-    };
+    function updateLinks(data) {
+        const moduleNumber = String(data['Module Number'] || '').trim();
+        const date = String(data.Date || '').trim();
+        const url = SITE_URL + '/?query=' + encodeURIComponent(
+            (moduleNumber + ' ' + date).trim()
+        );
+        const link = document.getElementById('existingEntryLink');
+        link.href = url;
+        link.style.visibility = moduleNumber || date ? 'visible' : 'hidden';
+    }
+
+    function updatePreview(showErrors) {
+        const data = parseEditor(showErrors);
+        if (!data) return Promise.resolve(false);
+        editedData.set(REVIEW_ITEMS[currentIndex].id, data);
+        updateLinks(data);
+
+        const requestId = ++previewRequest;
+        const preview = document.getElementById('preview');
+        preview.innerHTML = '<div class="preview-placeholder">Generating preview…</div>';
+        return fetch('/preview', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({data: data})
+        })
+            .then(response => response.json().then(body => ({ok: response.ok, body: body})))
+            .then(result => {
+                if (requestId !== previewRequest) return false;
+                if (!result.ok || !result.body.success) {
+                    preview.innerHTML = '';
+                    showNotice(result.body.message || 'Unable to generate preview.', 'error');
+                    return false;
+                }
+                preview.innerHTML = result.body.html;
+                adjustBarLabels(preview);
+                checkDuplicate(data, requestId);
+                return true;
+            })
+            .catch(() => {
+                if (requestId !== previewRequest) return false;
+                preview.innerHTML = '';
+                showNotice('Unable to generate the preview.', 'error');
+                return false;
+            });
+    }
+
+    function checkDuplicate(data, requestId) {
+        const name = String(data.Name || '').trim();
+        const date = String(data.Date || '').trim();
+        if (!name || !date) return;
+        fetch(API_URL + '/check', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({query: name.split(/\s+/)[0] + ' ' + date})
+        })
+            .then(response => {
+                if (!response.ok) throw new Error('Duplicate check unavailable');
+                return response.json();
+            })
+            .then(result => {
+                if (requestId !== previewRequest) return;
+                const hit = result.hits && result.hits[0];
+                if (!hit || String(hit.Date || '') !== date) return;
+                const duplicateUrl = SITE_URL + '/?query=' + encodeURIComponent(
+                    String(hit['Module Number'] || '') + ' ' + date
+                );
+                showNotice('Possible duplicate.', 'warning', duplicateUrl);
+            })
+            .catch(() => {});
+    }
+
+    function loadItem(index, preserveCurrent) {
+        if (!REVIEW_ITEMS.length) return;
+        if (preserveCurrent !== false) saveCurrentEdits();
+        currentIndex = Math.max(0, Math.min(index, REVIEW_ITEMS.length - 1));
+        const item = REVIEW_ITEMS[currentIndex];
+        const data = editedData.get(item.id) || item.data;
+
+        document.getElementById('itemTitle').textContent =
+            data.Name || 'Unnamed submission';
+        document.getElementById('queuePosition').textContent =
+            (currentIndex + 1) + ' of ' + REVIEW_ITEMS.length;
+        document.getElementById('queueCount').textContent =
+            REVIEW_ITEMS.length + ' pending';
+        document.getElementById('previousButton').disabled = currentIndex === 0;
+        document.getElementById('nextButton').disabled =
+            currentIndex === REVIEW_ITEMS.length - 1;
+
+        const image = document.getElementById('sourceImage');
+        image.src = item.image;
+        document.getElementById('openImageLink').href = item.image;
+        document.getElementById('jsonEditor').value = JSON.stringify(data, null, 4);
+        parseEditor(false);
+        updatePreview(false);
+    }
+
+    function approveCurrent() {
+        const data = parseEditor(true);
+        if (!data) return;
+        const item = REVIEW_ITEMS[currentIndex];
+        const button = document.getElementById('approveButton');
+        button.disabled = true;
+        button.textContent = 'Publishing…';
+
+        fetch('/update/' + encodeURIComponent(item.id), {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({data: data})
+        })
+            .then(response => response.json().then(body => ({ok: response.ok, body: body})))
+            .then(result => {
+                if (!result.ok || !result.body.success) {
+                    throw new Error(result.body.message || 'Unable to approve submission.');
+                }
+                editedData.delete(item.id);
+                REVIEW_ITEMS.splice(currentIndex, 1);
+                if (!REVIEW_ITEMS.length) {
+                    window.location.reload();
+                    return;
+                }
+                if (currentIndex >= REVIEW_ITEMS.length) currentIndex--;
+                loadItem(currentIndex, false);
+            })
+            .catch(error => showNotice(error.message, 'error'))
+            .finally(() => {
+                button.disabled = false;
+                button.innerHTML = 'Approve &amp; next <span class="shortcut">Ctrl ⇧ ↵</span>';
+            });
+    }
+
+    if (REVIEW_ITEMS.length) {
+        document.getElementById('previousButton').addEventListener('click', () => {
+            loadItem(currentIndex - 1);
+        });
+        document.getElementById('nextButton').addEventListener('click', () => {
+            loadItem(currentIndex + 1);
+        });
+        document.getElementById('formatButton').addEventListener('click', () => {
+            const data = parseEditor(true);
+            if (data) document.getElementById('jsonEditor').value =
+                JSON.stringify(data, null, 4);
+        });
+        document.getElementById('previewButton').addEventListener('click', () => {
+            updatePreview(true);
+        });
+        document.getElementById('approveButton').addEventListener('click', approveCurrent);
+        document.getElementById('jsonEditor').addEventListener('input', () => {
+            parseEditor(false);
+        });
+        document.getElementById('sourceImage').addEventListener('click', () => {
+            window.open(document.getElementById('sourceImage').src, '_blank', 'noopener');
+        });
+        document.addEventListener('keydown', event => {
+            if (!(event.ctrlKey || event.metaKey) || event.key !== 'Enter') return;
+            event.preventDefault();
+            if (event.shiftKey) approveCurrent();
+            else updatePreview(true);
+        });
+        window.addEventListener('resize', () => adjustBarLabels(
+            document.getElementById('preview')
+        ));
+        loadItem(0);
+    }
 </script>
 </body>
 </html>
