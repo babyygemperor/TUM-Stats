@@ -1,0 +1,11 @@
+.git
+.claude
+.env
+runtime
+stats
+old
+private-review/*.json
+upload/examples
+upload/test_*.py
+**/__pycache__
+**/*.pyc

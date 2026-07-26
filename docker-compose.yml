@@ -1,56 +1,75 @@
-version: '3.8'
-
 services:
   stats-api:
-    build: ./api
+    build:
+      context: .
+      dockerfile: api/Dockerfile
     ports:
       - "6655:6655"
+      - "8079:6655"
     volumes:
-      - ./shared:/app/shared:ro
+      - ./runtime:/runtime
+    env_file:
+      - .env
+    environment:
+      STATS_DATABASE_PATH: /runtime/stats.sqlite3
+      STATS_IMAGE_DIR: /runtime/images
+      MEILISEARCH_URL: http://meilisearch:7700
     restart: unless-stopped
     depends_on:
-      meilisearch-init:
+      meilisearch-bootstrap:
         condition: service_completed_successfully
+
+  stats-review:
+    build:
+      context: .
+      dockerfile: private-review/Dockerfile
+    ports:
+      - "9981:9981"
+    volumes:
+      - ./runtime:/runtime
+    env_file:
+      - .env
+    environment:
+      STATS_DATABASE_PATH: /runtime/stats.sqlite3
+      STATS_IMAGE_DIR: /runtime/images
+      MEILISEARCH_URL: http://meilisearch:7700
+    restart: unless-stopped
+    depends_on:
+      meilisearch-bootstrap:
+        condition: service_completed_successfully
+
   meilisearch:
-    image: getmeili/meilisearch
+    image: getmeili/meilisearch:v1.15
+    env_file:
+      - .env
+    environment:
+      MEILI_ENV: production
+      MEILI_MASTER_KEY: ${MEILI_MASTER_KEY}
+    volumes:
+      - ./runtime/meilisearch:/meili_data
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:7700/health"]
       interval: 5s
       timeout: 3s
-      retries: 5
-  stats-upload:
-    build: ./upload
-    ports:
-      - "8079:8079"
+      retries: 12
+
+  meilisearch-bootstrap:
+    build:
+      context: .
+      dockerfile: private-review/Dockerfile
+    command: ["python", "-m", "shared.bootstrap"]
     volumes:
-      - ./stats:/stats
-      - ./shared:/app/shared:ro
+      - ./runtime:/runtime
+      - ./stats:/legacy-stats:ro
     env_file:
       - .env
-    restart: unless-stopped
-  stats-review:
-    build: ./private-review
-    ports:
-      - "9981:9981"
-    volumes:
-      - ./stats:/stats
-      - ./shared:/app/shared:ro
-    restart: unless-stopped
-  meilisearch-init:
-    image: curlimages/curl:latest
+    environment:
+      STATS_DATABASE_PATH: /runtime/stats.sqlite3
+      STATS_IMAGE_DIR: /runtime/images
+      LEGACY_STATS_DIR: /legacy-stats
+      MEILISEARCH_URL: http://meilisearch:7700
     depends_on:
       meilisearch:
         condition: service_healthy
-    volumes:
-      - ./stats:/stats:ro
-    entrypoint: ["/bin/sh", "-c"]
-    command:
-      - |
-        curl -X POST 'http://meilisearch:7700/indexes/exams/documents' \
-          -H 'Content-Type: application/json' \
-          --data-binary @/stats/master_with_id.json &&
-        curl -X POST 'http://meilisearch:7700/indexes/exams/documents' \
-          -H 'Content-Type: application/json' \
-          --data-binary @/stats/new_data_only.json
     restart: "no"

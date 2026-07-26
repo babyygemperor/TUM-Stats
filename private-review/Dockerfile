@@ -1,17 +1,14 @@
-# Use an official Python runtime as a parent image
-FROM python:3.8-slim
+FROM python:3.11-slim
 
-# Set the working directory to /app
 WORKDIR /app
 
-# Copy the current directory contents into the container at /app
-COPY . /app
+COPY private-review/requirements.txt /app/requirements.txt
+RUN pip install --no-cache-dir -r /app/requirements.txt
 
-# Install any needed packages specified in requirements.txt
-RUN pip install --no-cache-dir -r requirements.txt
+COPY shared /app/shared
+COPY private-review/app.py /app/review_app.py
+COPY private-review/templates /app/templates
 
-# Make port 9981 available to the world outside this container
 EXPOSE 9981
 
-# Run app.py when the container launches
-CMD ["python", "app.py"]
+CMD ["gunicorn", "--bind", "0.0.0.0:9981", "--workers", "2", "--threads", "4", "--timeout", "90", "review_app:app"]

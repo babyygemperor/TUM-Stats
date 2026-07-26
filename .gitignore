@@ -5,3 +5,5 @@ stats/
 private-review/data.json
 private-review/new_data_only.json
 private-review/processed_data.json
+runtime/
+__pycache__/
