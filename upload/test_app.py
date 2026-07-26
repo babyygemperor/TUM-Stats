@@ -17,12 +17,15 @@ from upload.ocr import OCRServiceError
 
 
 class FakeSearchIndex:
-    def __init__(self):
+    def __init__(self, hits=None):
         self.last_limit = None
+        self.hits = hits or [
+            {"Name": "Example", "Grade distribution": {"1.0": "1"}}
+        ]
 
     def search(self, query, limit=100000, attributes=None):
         self.last_limit = limit
-        return {"hits": [{"Name": "Example", "Grade distribution": {"1.0": "1"}}]}
+        return {"hits": self.hits}
 
 
 class UploadErrorPrivacyTests(unittest.TestCase):
@@ -94,6 +97,108 @@ class UploadErrorPrivacyTests(unittest.TestCase):
 
             self.assertEqual(response.status_code, 200)
             self.assertEqual(search_index.last_limit, 20)
+
+    def test_suggestions_are_grouped_by_module_number(self):
+        hits = [
+            {
+                "Module Number": "EI4693",
+                "Name": "Introduction to Signal Processing for IN",
+                "Date": "2025-02-01",
+            },
+            {
+                "Module Number": "IN0001",
+                "Name": "Old name",
+                "Date": "2023-01-01",
+            },
+            {
+                "Module Number": "IN0001",
+                "Name": "Current name",
+                "Date": "2025-01-01",
+            },
+            {
+                "Module Number": "IN0002",
+                "Name": "Another module",
+                "Date": "2024-01-01",
+            },
+        ]
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            repository = StatsRepository(
+                database_path=str(root / "stats.sqlite3"),
+                image_dir=str(root / "images"),
+            )
+            public_app = create_public_app(
+                repository=repository, search_index=FakeSearchIndex(hits)
+            )
+
+            with public_app.test_client() as client:
+                response = client.get("/suggest?query=IN")
+
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(
+                response.get_json(),
+                [
+                    {
+                        "module_number": "IN0001",
+                        "name": "Current name",
+                        "latest_date": "2025-01-01",
+                        "exam_count": 2,
+                    },
+                    {
+                        "module_number": "IN0002",
+                        "name": "Another module",
+                        "latest_date": "2024-01-01",
+                        "exam_count": 1,
+                    },
+                    {
+                        "module_number": "EI4693",
+                        "name": "Introduction to Signal Processing for IN",
+                        "latest_date": "2025-02-01",
+                        "exam_count": 1,
+                    },
+                ],
+            )
+
+    def test_selected_module_is_exact_and_sorted_newest_first(self):
+        hits = [
+            {
+                "Module Number": "IN0001",
+                "Name": "Older exam",
+                "Date": "2023-01-01",
+                "Grade distribution": {"1.0": "1"},
+            },
+            {
+                "Module Number": "IN00010",
+                "Name": "Different module",
+                "Date": "2026-01-01",
+                "Grade distribution": {"1.0": "1"},
+            },
+            {
+                "Module Number": "IN0001",
+                "Name": "Newer exam",
+                "Date": "2025-01-01",
+                "Grade distribution": {"1.0": "1"},
+            },
+        ]
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            repository = StatsRepository(
+                database_path=str(root / "stats.sqlite3"),
+                image_dir=str(root / "images"),
+            )
+            public_app = create_public_app(
+                repository=repository, search_index=FakeSearchIndex(hits)
+            )
+
+            with public_app.test_client() as client:
+                response = client.get("/search/module?module=IN0001")
+
+            rendered = response.get_json()
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(len(rendered), 2)
+            self.assertIn("Newer exam", rendered[0])
+            self.assertIn("Older exam", rendered[1])
+            self.assertNotIn("Different module", "".join(rendered))
 
 
 if __name__ == "__main__":

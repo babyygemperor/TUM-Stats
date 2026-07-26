@@ -44,8 +44,14 @@
             align-items: center;
         }
 
-        #searchBox {
+        .search-input-wrapper {
+            position: relative;
             flex-grow: 1;
+        }
+
+        #searchBox {
+            width: 100%;
+            box-sizing: border-box;
             padding: 12px 16px;
             font-size: 15px;
             font-family: inherit;
@@ -64,6 +70,54 @@
 
         #searchBox::placeholder {
             color: #9ca3af;
+        }
+
+        #searchSuggestions {
+            display: none;
+            position: absolute;
+            top: calc(100% + 6px);
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            overflow: hidden;
+            background: white;
+            border: 1px solid #d1d5db;
+            border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+        }
+
+        .search-suggestion {
+            display: block;
+            width: 100%;
+            padding: 10px 14px;
+            border: 0;
+            border-bottom: 1px solid #e5e7eb;
+            background: white;
+            color: #111;
+            text-align: left;
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        .search-suggestion:last-child {
+            border-bottom: 0;
+        }
+
+        .search-suggestion:hover, .search-suggestion:focus {
+            background: #eff6ff;
+            outline: none;
+        }
+
+        .suggestion-module {
+            display: block;
+            font-weight: 600;
+        }
+
+        .suggestion-details {
+            display: block;
+            margin-top: 2px;
+            color: #6b7280;
+            font-size: 12px;
         }
 
         #contributeButton {
@@ -246,7 +300,10 @@
     <div class="header">
         <h1>TUM Exam Statistics</h1>
         <div class="search-container">
-            <input type="text" id="searchBox" onkeyup="searchExams()" placeholder="Search by module number or name (e.g. IN0069)">
+            <div class="search-input-wrapper">
+                <input type="text" id="searchBox" oninput="handleSearchInput()" autocomplete="off" aria-autocomplete="list" aria-controls="searchSuggestions" placeholder="Search by module number or name (e.g. IN0069)">
+                <div id="searchSuggestions" role="listbox"></div>
+            </div>
             <div class="search-spinner" id="searchSpinner"></div>
             <button id="contributeButton" onclick="location.href='/upload'">Contribute</button>
         </div>
@@ -14462,7 +14519,107 @@
         });
 
         let searchTimeout;
+        let suggestionTimeout;
         let searchRequestId = 0;
+
+        function renderSearchResults(data, requestId) {
+            if (requestId !== searchRequestId) return;
+            const output = document.getElementById('html-output');
+            const searchSpinner = document.getElementById('searchSpinner');
+            searchSpinner.style.display = 'none';
+            output.innerHTML = '';
+            const fragment = document.createDocumentFragment();
+            data.forEach(element => {
+                const div = document.createElement('div');
+                div.classList.add('stats');
+                div.innerHTML = element;
+                fragment.appendChild(div);
+            });
+            output.appendChild(fragment);
+            adjustBarLabels(output);
+        }
+
+        function hideSuggestions() {
+            const suggestions = document.getElementById('searchSuggestions');
+            suggestions.style.display = 'none';
+            suggestions.innerHTML = '';
+        }
+
+        function loadSuggestions() {
+            clearTimeout(suggestionTimeout);
+            const query = document.getElementById('searchBox').value.trim();
+            if (query.length < 2) {
+                hideSuggestions();
+                return;
+            }
+
+            suggestionTimeout = setTimeout(() => {
+                fetch(API_URL + '/suggest?query=' + encodeURIComponent(query))
+                    .then(response => {
+                        if (!response.ok) throw new Error('Suggestions unavailable');
+                        return response.json();
+                    })
+                    .then(modules => {
+                        if (document.getElementById('searchBox').value.trim() !== query) return;
+                        const suggestions = document.getElementById('searchSuggestions');
+                        suggestions.innerHTML = '';
+                        modules.forEach(module => {
+                            const button = document.createElement('button');
+                            button.type = 'button';
+                            button.className = 'search-suggestion';
+                            button.setAttribute('role', 'option');
+
+                            const moduleLabel = document.createElement('span');
+                            moduleLabel.className = 'suggestion-module';
+                            moduleLabel.textContent = module.module_number;
+
+                            const details = document.createElement('span');
+                            details.className = 'suggestion-details';
+                            const examLabel = module.exam_count === 1 ? 'exam' : 'exams';
+                            details.textContent = module.name + ' · ' + module.exam_count + ' ' + examLabel;
+
+                            button.appendChild(moduleLabel);
+                            button.appendChild(details);
+                            button.addEventListener('click', () => {
+                                selectModule(module.module_number);
+                            });
+                            suggestions.appendChild(button);
+                        });
+                        suggestions.style.display = modules.length ? 'block' : 'none';
+                    })
+                    .catch(() => hideSuggestions());
+            }, 150);
+        }
+
+        function selectModule(moduleNumber) {
+            clearTimeout(searchTimeout);
+            clearTimeout(suggestionTimeout);
+            hideSuggestions();
+            document.getElementById('searchBox').value = moduleNumber;
+            standardDiv.style.display = 'none';
+            scrollSentinel.style.display = 'none';
+            document.getElementById('searchSpinner').style.display = 'block';
+
+            const requestId = ++searchRequestId;
+            fetch(API_URL + '/search/module?module=' + encodeURIComponent(moduleNumber))
+                .then(response => {
+                    if (!response.ok) throw new Error('Search unavailable');
+                    return response.json();
+                })
+                .then(data => renderSearchResults(data, requestId))
+                .catch(error => {
+                    if (requestId !== searchRequestId) return;
+                    document.getElementById('searchSpinner').style.display = 'none';
+                    console.error('Error:', error);
+                    document.getElementById('server-offline').style.display = 'block';
+                });
+        }
+
+        function handleSearchInput() {
+            loadSuggestions();
+            searchExams();
+        }
+
         function searchExams() {
             clearTimeout(searchTimeout);
             const requestId = ++searchRequestId;
@@ -14483,18 +14640,7 @@
                             return response.json();
                         })
                         .then(data => {
-                            if (requestId !== searchRequestId) return;
-                            searchSpinner.style.display = 'none';
-                            output.innerHTML = '';
-                            const fragment = document.createDocumentFragment();
-                            data.forEach(element => {
-                                const div = document.createElement('div');
-                                div.classList.add('stats');
-                                div.innerHTML = element;
-                                fragment.appendChild(div);
-                            });
-                            output.appendChild(fragment);
-                            adjustBarLabels(output);
+                            renderSearchResults(data, requestId);
                         })
                         .catch(error => {
                             if (requestId !== searchRequestId) return;
@@ -14511,6 +14657,10 @@
                 scrollSentinel.style.display = '';
             }
         }
+
+        document.addEventListener('click', event => {
+            if (!event.target.closest('.search-input-wrapper')) hideSuggestions();
+        });
 
         window.onload = function() {
             const query = new URLSearchParams(window.location.search).get('query');

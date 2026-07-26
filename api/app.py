@@ -12,6 +12,9 @@ from upload.ocr import OCRServiceError, extract_from_image
 
 PROCESSING_ERROR_MESSAGE = "Image processing failed. Please try again."
 INTERACTIVE_SEARCH_LIMIT = 20
+MODULE_SEARCH_LIMIT = 1000
+SUGGESTION_SEARCH_LIMIT = 100
+SUGGESTION_LIMIT = 8
 SEARCH_ATTRIBUTES = [
     "Date",
     "Module Number",
@@ -149,6 +152,89 @@ def create_public_app(repository=None, search_index=None):
             app.logger.exception("Search failed")
             return jsonify({"error": "Search is temporarily unavailable"}), 503
         return [json_to_html(dict(hit), query=query) for hit in hits]
+
+    @app.route("/suggest", methods=["GET"])
+    def suggest_modules():
+        query = request.args.get("query", "").strip()
+        if not query:
+            return []
+        try:
+            hits = search_index.search(
+                query,
+                limit=SUGGESTION_SEARCH_LIMIT,
+                attributes=["Module Number", "Name", "Date"],
+            )["hits"]
+        except SearchIndexError:
+            app.logger.exception("Module suggestions failed")
+            return jsonify({"error": "Search is temporarily unavailable"}), 503
+
+        modules = {}
+        for rank, hit in enumerate(hits):
+            module_number = str(hit.get("Module Number", "")).strip()
+            if not module_number:
+                continue
+            key = module_number.casefold()
+            date = str(hit.get("Date", ""))
+            current = modules.get(key)
+            if current is None:
+                modules[key] = {
+                    "module_number": module_number,
+                    "name": str(hit.get("Name", "")),
+                    "latest_date": date,
+                    "exam_count": 1,
+                    "_rank": rank,
+                }
+            else:
+                current["exam_count"] += 1
+                if date > current["latest_date"]:
+                    current["latest_date"] = date
+                    current["name"] = str(hit.get("Name", ""))
+
+        query_key = query.casefold()
+
+        def suggestion_order(module):
+            module_key = module["module_number"].casefold()
+            if module_key == query_key:
+                module_match = 0
+            elif module_key.startswith(query_key):
+                module_match = 1
+            elif query_key in module_key:
+                module_match = 2
+            else:
+                module_match = 3
+            return module_match, module["_rank"]
+
+        suggestions = sorted(modules.values(), key=suggestion_order)
+        for suggestion in suggestions:
+            suggestion.pop("_rank")
+        return suggestions[:SUGGESTION_LIMIT]
+
+    @app.route("/search/module", methods=["GET"])
+    def search_module():
+        module_number = request.args.get("module", "").strip()
+        if not module_number:
+            return []
+        try:
+            hits = search_index.search(
+                module_number,
+                limit=MODULE_SEARCH_LIMIT,
+                attributes=SEARCH_ATTRIBUTES,
+            )["hits"]
+        except SearchIndexError:
+            app.logger.exception("Module search failed")
+            return jsonify({"error": "Search is temporarily unavailable"}), 503
+
+        exact_hits = [
+            hit
+            for hit in hits
+            if str(hit.get("Module Number", "")).strip().casefold()
+            == module_number.casefold()
+        ]
+        exact_hits.sort(key=lambda hit: str(hit.get("Date", "")), reverse=True)
+        return [
+            json_to_html(dict(hit), query=module_number)
+            for hit in exact_hits
+        ]
 
     @app.route("/check", methods=["POST"])
     def check_api():
