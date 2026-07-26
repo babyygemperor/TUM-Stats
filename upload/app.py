@@ -3,7 +3,7 @@ import json
 import datetime
 
 from flask import Flask, request, jsonify
-from ocr import extract_from_image
+from ocr import OCRServiceError, extract_from_image
 from email_service import configure_mail, check_send_email, send_email
 from shared.rendering import json_to_html
 
@@ -11,6 +11,7 @@ app = Flask(__name__)
 mail = configure_mail(app)
 
 data_file = '/stats/new_data.json'
+PROCESSING_ERROR_MESSAGE = "Image processing failed. Please try again."
 
 
 @app.after_request
@@ -23,25 +24,32 @@ def add_headers(response):
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
-    image_data = request.form['image']
+    image_data = request.form.get('image')
     if not image_data:
-        return jsonify({"error": "No image data"})
+        return jsonify({"error": "No image data"}), 400
 
-    _, base64_image = image_data.split(",", 1)
+    try:
+        _, base64_image = image_data.split(",", 1)
+    except ValueError:
+        return jsonify({"error": "Invalid image data"}), 400
 
     print(len(base64_image))
 
     try:
-        openai_response = extract_from_image(base64_image)
-    except json.JSONDecodeError:
-        return "An error occurred. Try again!"
+        extracted_statistics = extract_from_image(base64_image)
+    except OCRServiceError as exc:
+        app.logger.error("Image processing failed: %s", exc)
+        return jsonify({"error": PROCESSING_ERROR_MESSAGE}), 502
 
-    print(openai_response, flush=True)
+    print(extracted_statistics, flush=True)
 
-    if isinstance(openai_response, str) and "The provided image does not contain" in openai_response:
+    if isinstance(extracted_statistics, str) and "The provided image does not contain" in extracted_statistics:
         return "The provided image does not contain relevant textual information about an academic course or exam results to convert into JSON format"
 
-    return {'json': openai_response, 'html': json_to_html(openai_response)}
+    return {
+        'json': extracted_statistics,
+        'html': json_to_html(extracted_statistics),
+    }
 
 
 def save_to_file(data):
